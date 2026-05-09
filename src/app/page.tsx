@@ -78,12 +78,16 @@ export default function CopilotKitPage() {
           //     "Please remove 1 random proverb from the list if there are any.",
           // },
           {
-            title: "What vibe do i have?",
+            title: "What photos do we have?",
             message: "What photos do we have?",
           },
           {
             title: "Inspire me!",
             message: "Send me some inspiration from the photos we have.",
+          },
+          {
+            title: "I want to upload photos",
+            message: "I want to upload photos",
           },
         ]}
       >
@@ -170,6 +174,29 @@ function YourMainContent({
       //
     },
   });
+
+  useCopilotAction(
+    {
+      name: "uploadTool",
+      description: "let user upload photos.",
+      available: "enabled",
+      parameters: [],
+      render: ({ args }) => {
+        return (
+          <div className="p-5 bg-blue-500 rounded-2xl">
+            <>
+              <MemoryThankYouCard></MemoryThankYouCard>
+            </>
+            <>
+              <MemoryList></MemoryList>
+            </>
+          </div>
+        );
+      },
+    },
+    [],
+  );
+
   const { copilotkit } = useCopilotKit();
 
   console.log(state.any, "state.any");
