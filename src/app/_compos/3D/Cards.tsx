@@ -93,18 +93,20 @@ function OneCard({ info }: any) {
   let tex: any = useTexture(info.imageUrl);
   return (
     <group>
-      <mesh>
-        <RoundedBoxGeometry
-          args={[1, 1, 0.2]}
-          radius={0.1}
-        ></RoundedBoxGeometry>
-        <meshPhysicalMaterial
-          // transmission={1}
-          roughness={1}
-          // metalness={0.2}
-          map={tex}
-        ></meshPhysicalMaterial>
-      </mesh>
+      {
+        <mesh>
+          <RoundedBoxGeometry
+            args={[1, 1, 0.2]}
+            radius={0.1}
+          ></RoundedBoxGeometry>
+          <meshPhysicalMaterial
+            // transmission={1}
+            roughness={1}
+            // metalness={0.2}
+            map={tex}
+          ></meshPhysicalMaterial>
+        </mesh>
+      }
     </group>
   );
 }
