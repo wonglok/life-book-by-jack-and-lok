@@ -106,7 +106,8 @@ function YourMainContent({
   themeColor: string;
 }) {
   //
-  console.log("data", data);
+  let first = data?.[0];
+  console.log("first", first);
   // 🪁 Shared State: https://docs.copilotkit.ai/mastra/shared-state/in-app-agent-read
   const { state, setState, name } = useCoAgent<AgentStateType>({
     name: "weatherAgent",
@@ -191,7 +192,6 @@ function YourMainContent({
             <Suspense fallback={null}>
               <Cards state={state} setState={setState}></Cards>
             </Suspense>
-
             <Suspense fallback={null}>
               <Logo></Logo>
             </Suspense>
@@ -208,7 +208,7 @@ function YourMainContent({
                 //
                 agent.agent.addMessage({
                   role: "user",
-                  content: `I want to see touching moments and set the theme color based on the moment.`,
+                  content: `I want to see touching moments, please suggest me some memories and set the theme color based on the moment.`,
                   id: `_${Math.random().toString(36).slice(2, 9)}`,
                 });
               }}
