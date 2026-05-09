@@ -135,12 +135,19 @@ function YourMainContent({ themeColor }: { themeColor: string }) {
             </>
           </div>
         </div>
-        <div className="h-full" style={{ width: `calc(100% - 350px)` }}>
+        <div
+          className="h-full"
+          onWaitingCapture={(r) => {
+            r.stopPropagation();
+            r.preventDefault();
+          }}
+          style={{ width: `calc(100% - 350px)` }}
+        >
           <Canvas>
             <Suspense fallback={null}>
               <Cards state={state} setState={setState}></Cards>
             </Suspense>
-            <OrbitControls></OrbitControls>
+            <OrbitControls enableZoom={false} enablePan={false}></OrbitControls>
           </Canvas>
         </div>
       </div>

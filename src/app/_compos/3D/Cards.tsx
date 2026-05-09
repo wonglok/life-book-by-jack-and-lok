@@ -11,7 +11,7 @@ import {
 } from "@react-three/drei";
 import { useEffect, useRef, useState } from "react";
 import { Mesh, MeshBasicMaterial, Object3D, PlaneGeometry } from "three";
-import { useThree } from "@react-three/fiber";
+import { useFrame, useThree } from "@react-three/fiber";
 import { AgentStateType } from "@/mastra/agents";
 
 export interface ProverbsCardProps {
@@ -20,18 +20,31 @@ export interface ProverbsCardProps {
 }
 
 export function Cards({ state, setState }: ProverbsCardProps) {
-  let refCurrent = useRef(0);
+  let refAccuDelta = useRef(0);
+  let refAccuTotal = useRef(0);
+  let refDelta = useRef(0);
+
+  console.log("state", state);
+
+  useFrame(() => {
+    refAccuDelta.current *= 0.95;
+    refAccuTotal.current += refAccuDelta.current;
+
+    //
+    console.log(refAccuTotal.current);
+  });
 
   useEffect(() => {
-    refCurrent.current = 0;
+    refAccuDelta.current = 0;
 
     const evt = (ev: any) => {
       //
       //
-      refCurrent.current += ev.deltaY;
+      refDelta.current = -ev.deltaY / 100;
+      refAccuDelta.current += -ev.deltaY / 100;
+
       //
       //
-      console.log(refCurrent.current);
       //
       //
     };

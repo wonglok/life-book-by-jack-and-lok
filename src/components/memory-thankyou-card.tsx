@@ -3,8 +3,10 @@
 import { useState, useRef, useCallback } from "react";
 
 export interface MemoryEntry {
+  _id?: string;
   id: string;
   title: string;
+  elderlyName?: string;
   lifeMemories: string;
   moments: string[];
   imageUrls: string[];
@@ -14,28 +16,6 @@ export interface MemoryEntry {
 
 interface Props {
   onSubmitted?: (entry: MemoryEntry) => void;
-}
-
-const STORAGE_KEY = "life-book-memories";
-
-export function saveMemory(entry: MemoryEntry) {
-  const existing = getMemories();
-  const idx = existing.findIndex((m) => m.id === entry.id);
-  if (idx >= 0) {
-    existing[idx] = entry;
-  } else {
-    existing.unshift(entry);
-  }
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(existing));
-}
-
-export function getMemories(): MemoryEntry[] {
-  if (typeof window === "undefined") return [];
-  try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
-  } catch {
-    return [];
-  }
 }
 
 function splitIntoMoments(text: string): string[] {
@@ -193,7 +173,7 @@ export default function MemoryThankYouCard({ onSubmitted }: Props) {
     }
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!lifeMemories.trim()) {
       setError("Please write some life memories before submitting");
       return;
@@ -205,21 +185,31 @@ export default function MemoryThankYouCard({ onSubmitted }: Props) {
     const finalMoments =
       moments.length > 0 ? moments : splitIntoMoments(lifeMemories);
 
-    const now = new Date().toISOString();
-    const entry: MemoryEntry = {
-      id: crypto.randomUUID(),
-      title: title.trim() || "Untitled Memory",
-      lifeMemories: lifeMemories.trim(),
-      moments: finalMoments,
-      imageUrls,
-      createdAt: now,
-      updatedAt: now,
-    };
+    try {
+      const res = await fetch("/api/memories", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: title.trim() || "Untitled Memory",
+          lifeMemories: lifeMemories.trim(),
+          moments: finalMoments,
+          imageUrls,
+        }),
+      });
 
-    saveMemory(entry);
-    setIsSubmitting(false);
-    setSubmitted(true);
-    onSubmitted?.(entry);
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || "Failed to save memory");
+      }
+
+      const entry: MemoryEntry = await res.json();
+      setIsSubmitting(false);
+      setSubmitted(true);
+      onSubmitted?.(entry);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to save memory");
+      setIsSubmitting(false);
+    }
   };
 
   const resetCard = () => {

@@ -3,6 +3,18 @@ import { NextRequest, NextResponse } from "next/server";
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 const MODEL = "google/gemma-4-26b-a4b-it";
 
+function corsHeaders() {
+  return {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization",
+  };
+}
+
+export async function OPTIONS() {
+  return NextResponse.json({}, { headers: corsHeaders() });
+}
+
 export async function POST(req: NextRequest) {
   try {
     const { imageUrls } = await req.json();
@@ -10,7 +22,7 @@ export async function POST(req: NextRequest) {
     if (!imageUrls || !Array.isArray(imageUrls) || imageUrls.length === 0) {
       return NextResponse.json(
         { error: "imageUrls array is required" },
-        { status: 400 },
+        { status: 400, headers: corsHeaders() },
       );
     }
 
@@ -18,7 +30,7 @@ export async function POST(req: NextRequest) {
     if (!apiKey) {
       return NextResponse.json(
         { error: "OPENROUTER_API_KEY not configured" },
-        { status: 500 },
+        { status: 500, headers: corsHeaders() },
       );
     }
 
@@ -78,7 +90,7 @@ Rules:
       console.error("OpenRouter error:", err);
       return NextResponse.json(
         { error: `AI service error: ${response.status}` },
-        { status: 502 },
+        { status: 502, headers: corsHeaders() },
       );
     }
 
@@ -102,12 +114,12 @@ Rules:
       ? narrativeMatch[1].trim()
       : rawText.trim();
 
-    return NextResponse.json({ moments, narrative });
+    return NextResponse.json({ moments, narrative }, { headers: corsHeaders() });
   } catch (error) {
     console.error("Extract memories error:", error);
     return NextResponse.json(
       { error: "Failed to extract memories" },
-      { status: 500 },
+      { status: 500, headers: corsHeaders() },
     );
   }
 }
