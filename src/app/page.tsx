@@ -233,7 +233,7 @@ function YourMainContent({
                 //
                 agent.agent.addMessage({
                   role: "user",
-                  content: `suggest me images that are happy, and set the theme color based on the moment.`,
+                  content: `suggest me images that are sad, and set the theme color based on the moment.`,
                   id: `_${Math.random().toString(36).slice(2, 9)}`,
                 });
 
@@ -244,7 +244,7 @@ function YourMainContent({
                 copilotkit.runAgent({ agent: agent.agent });
               }}
             >
-              See Happy Moments
+              See Sad Moments
             </button>
           </div>
         </div>
