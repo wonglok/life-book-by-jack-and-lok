@@ -179,7 +179,7 @@ export default function MemoryList() {
                 {memory.imageUrls.length > 0 ? (
                   <img
                     src={memory.imageUrls[0]}
-                    alt={memory.title}
+                    alt={""}
                     className="w-14 h-14 rounded-lg object-cover shrink-0"
                   />
                 ) : (
@@ -202,7 +202,7 @@ export default function MemoryList() {
 
                 <div className="flex-1 min-w-0">
                   <h4 className="text-white text-sm font-medium truncate">
-                    {memory.title}
+                    {""}
                   </h4>
                   <div className="flex items-center gap-3 mt-1.5 text-white/25 text-xs">
                     <span>
@@ -250,7 +250,7 @@ export default function MemoryList() {
                       <div className="relative rounded-lg overflow-hidden aspect-4/3 bg-black/20">
                         <img
                           src={memory.imageUrls[photoIdx]}
-                          alt={`${memory.title} - ${photoIdx + 1}`}
+                          alt={`${""} - ${photoIdx + 1}`}
                           className="w-full h-full object-cover"
                         />
                         {memory.imageUrls.length > 1 && (
@@ -348,61 +348,6 @@ export default function MemoryList() {
                   {/* ---- EDIT MODE ---- */}
                   {editingId === id ? (
                     <div className="space-y-3">
-                      <input
-                        type="text"
-                        value={editValues.title}
-                        onChange={(e) =>
-                          setEditValues((prev) => ({
-                            ...prev,
-                            title: e.target.value,
-                          }))
-                        }
-                        placeholder="Title"
-                        className="w-full px-3 py-2 rounded-lg border border-white/20 bg-white/5
-                                   text-white text-sm placeholder-white/30
-                                   focus:outline-none focus:border-blue-400/50 focus:bg-white/10
-                                   transition-all"
-                      />
-                      <textarea
-                        value={editValues.lifeMemories}
-                        onChange={(e) =>
-                          setEditValues((prev) => ({
-                            ...prev,
-                            lifeMemories: e.target.value,
-                          }))
-                        }
-                        placeholder="Life memories narrative..."
-                        rows={6}
-                        className="w-full px-3 py-2 rounded-lg border border-white/20 bg-white/5
-                                   text-white text-sm placeholder-white/30 resize-y
-                                   focus:outline-none focus:border-blue-400/50 focus:bg-white/10
-                                   transition-all"
-                      />
-                      <div>
-                        <p className="text-white/30 text-xs mb-1.5">
-                          Moments — separated by{" "}
-                          <code className="text-white/40">---</code> on its own
-                          line
-                        </p>
-                        <textarea
-                          value={editValues.moments}
-                          onChange={(e) =>
-                            setEditValues((prev) => ({
-                              ...prev,
-                              moments: e.target.value,
-                            }))
-                          }
-                          placeholder={
-                            "First moment here...\n\n---\n\nSecond moment here..."
-                          }
-                          rows={5}
-                          className="w-full px-3 py-2 rounded-lg border border-white/20 bg-white/5
-                                     text-white text-sm placeholder-white/30 resize-y
-                                     focus:outline-none focus:border-blue-400/50 focus:bg-white/10
-                                     transition-all"
-                        />
-                      </div>
-
                       {/* Edit actions */}
                       <div className="flex gap-2 pt-1">
                         <button

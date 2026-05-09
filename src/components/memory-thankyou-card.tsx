@@ -326,15 +326,6 @@ export default function MemoryThankYouCard({ onSubmitted }: Props) {
           </div>
         )}
 
-        {/* Title overlay */}
-        {title && (
-          <div className="absolute top-0 left-0 right-0 p-6 z-10">
-            <h2 className="text-white text-xl font-semibold drop-shadow-lg">
-              {title}
-            </h2>
-          </div>
-        )}
-
         {/* Moment ticker overlay */}
         {moments.length > 0 && (
           <div className="absolute bottom-0 left-0 right-0 p-6 z-10 max-h-[55%] overflow-y-auto">
