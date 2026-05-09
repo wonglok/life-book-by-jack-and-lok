@@ -23,7 +23,7 @@ export const AgentState = z.object({
     )
     .default([]),
   any: z.string()?.optional(),
-  suggestion: z
+  suggestions: z
     .array(
       z.object({
         _id: z.string(),
