@@ -23,6 +23,7 @@ import slugify from "slugify";
 import { Logo } from "./_compos/3D/Logo/Logo";
 import { useAgent } from "@copilotkit/react-core/v2";
 import { Bubble } from "./_compos/3D/Bubble/Bubble";
+import { useApp } from "./_compos/3D/useApp";
 export default function CopilotKitPage() {
   const [themeColor, setThemeColor] = useState("#6366f1");
 
@@ -158,6 +159,8 @@ function YourMainContent({
     ],
     handler({ color }) {
       console.log(color);
+
+      useApp.setState({ moodColor1: color });
 
       //
     },
