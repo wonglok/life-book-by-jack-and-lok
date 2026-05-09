@@ -233,10 +233,6 @@ export default function MemoryList() {
                   <h4 className="text-white text-sm font-medium truncate">
                     {memory.title}
                   </h4>
-                  <p className="text-white/40 text-xs truncate mt-0.5">
-                    {memory.lifeMemories.slice(0, 100)}
-                    {memory.lifeMemories.length > 100 ? "..." : ""}
-                  </p>
                   <div className="flex items-center gap-3 mt-1.5 text-white/25 text-xs">
                     <span>
                       {new Date(memory.createdAt).toLocaleDateString("en-US", {
