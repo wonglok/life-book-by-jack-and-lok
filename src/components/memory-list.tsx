@@ -9,13 +9,11 @@ export default function MemoryList() {
   const [error, setError] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [editValues, setEditValues] = useState<{
-    title: string;
-    lifeMemories: string;
-    moments: string;
-  }>({ title: "", lifeMemories: "", moments: "" });
+
   const [isSaving, setIsSaving] = useState(false);
-  const [activePhotoIdx, setActivePhotoIdx] = useState<Record<string, number>>({});
+  const [activePhotoIdx, setActivePhotoIdx] = useState<Record<string, number>>(
+    {},
+  );
 
   const fetchMemories = useCallback(async () => {
     try {
@@ -82,7 +80,9 @@ export default function MemoryList() {
 
       const updated = await res.json();
       setMemories((prev) =>
-        prev.map((m) => ((m._id === id || m.id === id) ? { ...m, ...updated } : m)),
+        prev.map((m) =>
+          m._id === id || m.id === id ? { ...m, ...updated } : m,
+        ),
       );
       cancelEditing();
     } catch (err) {
@@ -108,10 +108,24 @@ export default function MemoryList() {
   if (isLoading) {
     return (
       <div className="w-full max-w-2xl mx-auto py-16 flex justify-center">
-        <svg className="animate-spin h-6 w-6 text-white/40" fill="none" viewBox="0 0 24 24">
-          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-          <path className="opacity-75" fill="currentColor"
-            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+        <svg
+          className="animate-spin h-6 w-6 text-white/40"
+          fill="none"
+          viewBox="0 0 24 24"
+        >
+          <circle
+            className="opacity-25"
+            cx="12"
+            cy="12"
+            r="10"
+            stroke="currentColor"
+            strokeWidth="4"
+          />
+          <path
+            className="opacity-75"
+            fill="currentColor"
+            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+          />
         </svg>
       </div>
     );
@@ -137,10 +151,16 @@ export default function MemoryList() {
       <div className="w-full max-w-2xl mx-auto py-16 text-center">
         <svg
           className="w-16 h-16 mx-auto mb-4 text-white/20"
-          fill="none" stroke="currentColor" viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
         >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1}
-            d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={1}
+            d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+          />
         </svg>
         <p className="text-white/40 text-sm">No memories saved yet</p>
         <p className="text-white/20 text-xs mt-1">
@@ -193,15 +213,26 @@ export default function MemoryList() {
                   />
                 ) : (
                   <div className="w-14 h-14 rounded-lg bg-white/5 shrink-0 flex items-center justify-center">
-                    <svg className="w-5 h-5 text-white/20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
-                        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    <svg
+                      className="w-5 h-5 text-white/20"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={1.5}
+                        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                      />
                     </svg>
                   </div>
                 )}
 
                 <div className="flex-1 min-w-0">
-                  <h4 className="text-white text-sm font-medium truncate">{memory.title}</h4>
+                  <h4 className="text-white text-sm font-medium truncate">
+                    {memory.title}
+                  </h4>
                   <p className="text-white/40 text-xs truncate mt-0.5">
                     {memory.lifeMemories.slice(0, 100)}
                     {memory.lifeMemories.length > 100 ? "..." : ""}
@@ -209,12 +240,15 @@ export default function MemoryList() {
                   <div className="flex items-center gap-3 mt-1.5 text-white/25 text-xs">
                     <span>
                       {new Date(memory.createdAt).toLocaleDateString("en-US", {
-                        year: "numeric", month: "short", day: "numeric",
+                        year: "numeric",
+                        month: "short",
+                        day: "numeric",
                       })}
                     </span>
                     {memory.imageUrls.length > 0 && (
                       <span>
-                        {memory.imageUrls.length} photo{memory.imageUrls.length > 1 ? "s" : ""}
+                        {memory.imageUrls.length} photo
+                        {memory.imageUrls.length > 1 ? "s" : ""}
                       </span>
                     )}
                     {memory.moments?.length > 0 && (
@@ -227,9 +261,16 @@ export default function MemoryList() {
                   className={`w-5 h-5 text-white/30 shrink-0 transition-transform ${
                     isExpanded ? "rotate-180" : ""
                   }`}
-                  fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
                 >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 9l-7 7-7-7"
+                  />
                 </svg>
               </button>
 
@@ -249,26 +290,56 @@ export default function MemoryList() {
                           <>
                             <button
                               onClick={() =>
-                                setPhotoIdx(id, photoIdx === 0 ? memory.imageUrls.length - 1 : photoIdx - 1)
+                                setPhotoIdx(
+                                  id,
+                                  photoIdx === 0
+                                    ? memory.imageUrls.length - 1
+                                    : photoIdx - 1,
+                                )
                               }
                               className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full
                                          bg-black/40 hover:bg-black/60 text-white flex items-center justify-center
                                          transition-all backdrop-blur-sm"
                             >
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                              <svg
+                                className="w-4 h-4"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M15 19l-7-7 7-7"
+                                />
                               </svg>
                             </button>
                             <button
                               onClick={() =>
-                                setPhotoIdx(id, photoIdx === memory.imageUrls.length - 1 ? 0 : photoIdx + 1)
+                                setPhotoIdx(
+                                  id,
+                                  photoIdx === memory.imageUrls.length - 1
+                                    ? 0
+                                    : photoIdx + 1,
+                                )
                               }
                               className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full
                                          bg-black/40 hover:bg-black/60 text-white flex items-center justify-center
                                          transition-all backdrop-blur-sm"
                             >
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                              <svg
+                                className="w-4 h-4"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M9 5l7 7-7 7"
+                                />
                               </svg>
                             </button>
                             <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
@@ -277,7 +348,9 @@ export default function MemoryList() {
                                   key={i}
                                   onClick={() => setPhotoIdx(id, i)}
                                   className={`w-1.5 h-1.5 rounded-full transition-all ${
-                                    i === photoIdx ? "bg-white scale-125" : "bg-white/40 hover:bg-white/70"
+                                    i === photoIdx
+                                      ? "bg-white scale-125"
+                                      : "bg-white/40 hover:bg-white/70"
                                   }`}
                                 />
                               ))}
@@ -311,7 +384,12 @@ export default function MemoryList() {
                       <input
                         type="text"
                         value={editValues.title}
-                        onChange={(e) => setEditValues((prev) => ({ ...prev, title: e.target.value }))}
+                        onChange={(e) =>
+                          setEditValues((prev) => ({
+                            ...prev,
+                            title: e.target.value,
+                          }))
+                        }
                         placeholder="Title"
                         className="w-full px-3 py-2 rounded-lg border border-white/20 bg-white/5
                                    text-white text-sm placeholder-white/30
@@ -320,7 +398,12 @@ export default function MemoryList() {
                       />
                       <textarea
                         value={editValues.lifeMemories}
-                        onChange={(e) => setEditValues((prev) => ({ ...prev, lifeMemories: e.target.value }))}
+                        onChange={(e) =>
+                          setEditValues((prev) => ({
+                            ...prev,
+                            lifeMemories: e.target.value,
+                          }))
+                        }
                         placeholder="Life memories narrative..."
                         rows={6}
                         className="w-full px-3 py-2 rounded-lg border border-white/20 bg-white/5
@@ -330,12 +413,21 @@ export default function MemoryList() {
                       />
                       <div>
                         <p className="text-white/30 text-xs mb-1.5">
-                          Moments — separated by <code className="text-white/40">---</code> on its own line
+                          Moments — separated by{" "}
+                          <code className="text-white/40">---</code> on its own
+                          line
                         </p>
                         <textarea
                           value={editValues.moments}
-                          onChange={(e) => setEditValues((prev) => ({ ...prev, moments: e.target.value }))}
-                          placeholder={"First moment here...\n\n---\n\nSecond moment here..."}
+                          onChange={(e) =>
+                            setEditValues((prev) => ({
+                              ...prev,
+                              moments: e.target.value,
+                            }))
+                          }
+                          placeholder={
+                            "First moment here...\n\n---\n\nSecond moment here..."
+                          }
                           rows={5}
                           className="w-full px-3 py-2 rounded-lg border border-white/20 bg-white/5
                                      text-white text-sm placeholder-white/30 resize-y
@@ -348,16 +440,35 @@ export default function MemoryList() {
                       <div className="flex gap-2 pt-1">
                         <button
                           onClick={() => saveEdit(id)}
-                          disabled={isSaving || !editValues.title.trim() || !editValues.lifeMemories.trim()}
+                          disabled={
+                            isSaving ||
+                            !editValues.title.trim() ||
+                            !editValues.lifeMemories.trim()
+                          }
                           className="px-5 py-2 rounded-lg bg-blue-500/80 text-white text-xs font-medium
                                      hover:bg-blue-500 disabled:opacity-30 disabled:cursor-not-allowed
                                      transition-all flex items-center gap-1.5"
                         >
                           {isSaving ? (
                             <>
-                              <svg className="animate-spin h-3.5 w-3.5" fill="none" viewBox="0 0 24 24">
-                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                              <svg
+                                className="animate-spin h-3.5 w-3.5"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                              >
+                                <circle
+                                  className="opacity-25"
+                                  cx="12"
+                                  cy="12"
+                                  r="10"
+                                  stroke="currentColor"
+                                  strokeWidth="4"
+                                />
+                                <path
+                                  className="opacity-75"
+                                  fill="currentColor"
+                                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                />
                               </svg>
                               Saving...
                             </>
@@ -385,11 +496,16 @@ export default function MemoryList() {
                             Moments
                           </p>
                           {memory.moments.map((moment, i) => (
-                            <div key={i} className="flex gap-2 p-2.5 rounded-lg bg-white/5 border border-white/5">
+                            <div
+                              key={i}
+                              className="flex gap-2 p-2.5 rounded-lg bg-white/5 border border-white/5"
+                            >
                               <span className="text-white/20 text-xs shrink-0 mt-0.5 font-mono">
                                 {String(i + 1).padStart(2, "0")}
                               </span>
-                              <p className="text-white/50 text-xs leading-relaxed">{moment}</p>
+                              <p className="text-white/50 text-xs leading-relaxed">
+                                {moment}
+                              </p>
                             </div>
                           ))}
                         </div>
@@ -405,15 +521,21 @@ export default function MemoryList() {
                         <p>
                           Created:{" "}
                           {new Date(memory.createdAt).toLocaleString("en-US", {
-                            year: "numeric", month: "short", day: "numeric",
-                            hour: "2-digit", minute: "2-digit",
+                            year: "numeric",
+                            month: "short",
+                            day: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
                           })}
                         </p>
                         <p>
                           Updated:{" "}
                           {new Date(memory.updatedAt).toLocaleString("en-US", {
-                            year: "numeric", month: "short", day: "numeric",
-                            hour: "2-digit", minute: "2-digit",
+                            year: "numeric",
+                            month: "short",
+                            day: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
                           })}
                         </p>
                       </div>

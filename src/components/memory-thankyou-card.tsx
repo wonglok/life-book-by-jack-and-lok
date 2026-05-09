@@ -13,7 +13,7 @@ export interface MemoryEntry {
   id: string;
   title: string;
   elderlyName?: string;
-  lifeMemories: string;
+  ories: string;
   moments: string[];
   imageUrls: string[];
   imageAndInspiration: ImageAndInspiration[];
@@ -153,13 +153,18 @@ export default function MemoryThankYouCard({ onSubmitted }: Props) {
 
       const { imageAndInspiration: results } = await res.json();
       setImageAndInspiration(results || []);
-      setInspirationProgress({ done: imageUrls.length, total: imageUrls.length });
+      setInspirationProgress({
+        done: imageUrls.length,
+        total: imageUrls.length,
+      });
 
       // 2. Auto-save to database
       const finalMoments =
-        moments.length > 0 ? moments : lifeMemories.trim()
-          ? splitIntoMoments(lifeMemories)
-          : [];
+        moments.length > 0
+          ? moments
+          : lifeMemories.trim()
+            ? splitIntoMoments(lifeMemories)
+            : [];
 
       const saveRes = await fetch("/api/memories", {
         method: "POST",
@@ -269,8 +274,18 @@ export default function MemoryThankYouCard({ onSubmitted }: Props) {
                              bg-black/30 hover:bg-black/50 text-white flex items-center justify-center
                              transition-all z-20 backdrop-blur-sm"
                 >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15 19l-7-7 7-7"
+                    />
                   </svg>
                 </button>
                 <button
@@ -284,17 +299,32 @@ export default function MemoryThankYouCard({ onSubmitted }: Props) {
                              bg-black/30 hover:bg-black/50 text-white flex items-center justify-center
                              transition-all z-20 backdrop-blur-sm"
                 >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 5l7 7-7 7"
+                    />
                   </svg>
                 </button>
                 <div className="absolute top-4 left-1/2 -translate-x-1/2 flex gap-1.5 z-20">
                   {imageUrls.map((_, i) => (
                     <button
                       key={i}
-                      onClick={(e) => { e.stopPropagation(); setActivePhotoIndex(i); }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setActivePhotoIndex(i);
+                      }}
                       className={`w-2 h-2 rounded-full transition-all ${
-                        i === activePhotoIndex ? "bg-white scale-125" : "bg-white/40 hover:bg-white/70"
+                        i === activePhotoIndex
+                          ? "bg-white scale-125"
+                          : "bg-white/40 hover:bg-white/70"
                       }`}
                     />
                   ))}
@@ -303,8 +333,10 @@ export default function MemoryThankYouCard({ onSubmitted }: Props) {
             )}
 
             {imageUrls.length > 1 && (
-              <div className="absolute top-4 right-4 px-2.5 py-1 rounded-full bg-black/40
-                             backdrop-blur-sm text-white text-xs z-20">
+              <div
+                className="absolute top-4 right-4 px-2.5 py-1 rounded-full bg-black/40
+                             backdrop-blur-sm text-white text-xs z-20"
+              >
                 {activePhotoIndex + 1} / {imageUrls.length}
               </div>
             )}
@@ -312,9 +344,18 @@ export default function MemoryThankYouCard({ onSubmitted }: Props) {
         ) : (
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="text-center text-white/40">
-              <svg className="w-16 h-16 mx-auto mb-3 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1}
-                  d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              <svg
+                className="w-16 h-16 mx-auto mb-3 opacity-50"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1}
+                  d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                />
               </svg>
               <p className="text-sm">Add photos to the memory book</p>
             </div>
@@ -324,15 +365,19 @@ export default function MemoryThankYouCard({ onSubmitted }: Props) {
         {/* Title overlay */}
         {title && (
           <div className="absolute top-0 left-0 right-0 p-6 z-10">
-            <h2 className="text-white text-xl font-semibold drop-shadow-lg">{title}</h2>
+            <h2 className="text-white text-xl font-semibold drop-shadow-lg">
+              {title}
+            </h2>
           </div>
         )}
 
         {/* Moment ticker overlay */}
         {moments.length > 0 && (
           <div className="absolute bottom-0 left-0 right-0 p-6 z-10 max-h-[55%] overflow-y-auto">
-            <div className="text-white/90 text-xs leading-relaxed drop-shadow-lg"
-                 style={{ fontStyle: "italic" }}>
+            <div
+              className="text-white/90 text-xs leading-relaxed drop-shadow-lg"
+              style={{ fontStyle: "italic" }}
+            >
               &ldquo;{moments[activeMomentIndex]}&rdquo;
             </div>
             {moments.length > 1 && (
@@ -340,9 +385,14 @@ export default function MemoryThankYouCard({ onSubmitted }: Props) {
                 {moments.map((_, i) => (
                   <button
                     key={i}
-                    onClick={(e) => { e.stopPropagation(); setActiveMomentIndex(i); }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setActiveMomentIndex(i);
+                    }}
                     className={`w-1.5 h-1.5 rounded-full transition-all ${
-                      i === activeMomentIndex ? "bg-white" : "bg-white/30 hover:bg-white/60"
+                      i === activeMomentIndex
+                        ? "bg-white"
+                        : "bg-white/30 hover:bg-white/60"
                     }`}
                   />
                 ))}
@@ -384,8 +434,14 @@ export default function MemoryThankYouCard({ onSubmitted }: Props) {
       <div className="w-full space-y-4">
         <div
           onDrop={handleDrop}
-          onDragOver={(e) => { e.preventDefault(); setIsDragOver(true); }}
-          onDragLeave={(e) => { e.preventDefault(); setIsDragOver(false); }}
+          onDragOver={(e) => {
+            e.preventDefault();
+            setIsDragOver(true);
+          }}
+          onDragLeave={(e) => {
+            e.preventDefault();
+            setIsDragOver(false);
+          }}
           onClick={() => fileInputRef.current?.click()}
           className={`relative border-2 border-dashed rounded-xl p-6 text-center cursor-pointer
                       transition-all duration-200 ${
@@ -396,13 +452,28 @@ export default function MemoryThankYouCard({ onSubmitted }: Props) {
         >
           {isUploading ? (
             <div className="space-y-3">
-              <svg className="animate-spin h-8 w-8 mx-auto text-blue-400" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                <path className="opacity-75" fill="currentColor"
-                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+              <svg
+                className="animate-spin h-8 w-8 mx-auto text-blue-400"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                />
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                />
               </svg>
               <p className="text-white/70 text-sm">
-                Uploading {uploadCount.done} of {uploadCount.total} photos... {uploadProgress}%
+                Uploading {uploadCount.done} of {uploadCount.total} photos...{" "}
+                {uploadProgress}%
               </p>
               <div className="w-full max-w-xs mx-auto bg-white/10 rounded-full h-1.5 overflow-hidden">
                 <div
@@ -413,19 +484,37 @@ export default function MemoryThankYouCard({ onSubmitted }: Props) {
             </div>
           ) : (
             <div className="space-y-2">
-              <svg className="w-10 h-10 mx-auto text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
-                  d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+              <svg
+                className="w-10 h-10 mx-auto text-white/50"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1.5}
+                  d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                />
               </svg>
               <p className="text-white/60 text-sm">
-                {imageUrls.length > 0 ? "Add more photos..." : "Drop photos here or click to browse"}
+                {imageUrls.length > 0
+                  ? "Add more photos..."
+                  : "Drop photos here or click to browse"}
               </p>
               <p className="text-white/30 text-xs">
                 PNG, JPG up to 10MB each &middot; Select multiple
               </p>
             </div>
           )}
-          <input ref={fileInputRef} type="file" accept="image/*" multiple onChange={handleFileSelect} className="hidden" />
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            multiple
+            onChange={handleFileSelect}
+            className="hidden"
+          />
         </div>
 
         {error && <p className="text-red-400 text-sm text-center">{error}</p>}
@@ -444,18 +533,42 @@ export default function MemoryThankYouCard({ onSubmitted }: Props) {
         >
           {isGeneratingInspiration ? (
             <>
-              <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                <path className="opacity-75" fill="currentColor"
-                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+              <svg
+                className="animate-spin h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                />
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                />
               </svg>
-              Generating inspiration ({inspirationProgress.done}/{inspirationProgress.total})...
+              Generating inspiration ({inspirationProgress.done}/
+              {inspirationProgress.total})...
             </>
           ) : (
             <>
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                  d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
+                />
               </svg>
               Submit
             </>
@@ -537,13 +650,22 @@ export default function MemoryThankYouCard({ onSubmitted }: Props) {
       <div className="w-full flex gap-3 justify-center">
         {submitted && (
           <p className="text-green-400 text-sm flex items-center gap-1.5 py-3">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M5 13l4 4L19 7"
+              />
             </svg>
             Memory saved!
           </p>
         )}
-
       </div>
     </div>
   );

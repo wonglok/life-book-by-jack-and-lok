@@ -20,9 +20,7 @@ export async function OPTIONS() {
 export async function GET() {
   try {
     await connectDB();
-    const memories = await Memory.find()
-      .sort({ createdAt: -1 })
-      .lean();
+    const memories = await Memory.find().sort({ createdAt: -1 }).lean();
     return NextResponse.json(memories, { headers: corsHeaders() });
   } catch (error) {
     console.error("GET /api/memories error:", error);
@@ -39,12 +37,9 @@ export async function POST(req: NextRequest) {
     await connectDB();
     const body = await req.json();
 
-    const { title, elderlyName, lifeMemories, moments, imageUrls } = body;
+    const { moments, imageUrls } = body;
 
     const memory = await Memory.create({
-      title,
-      elderlyName: elderlyName || "",
-      lifeMemories,
       moments: moments || [],
       imageUrls: imageUrls || [],
     });

@@ -1,9 +1,6 @@
 import mongoose, { Schema, Document, Model } from "mongoose";
 
 export interface IMemory extends Document {
-  title: string;
-  elderlyName: string;
-  lifeMemories: string;
   moments: string[];
   imageUrls: string[];
   imageAndInspiration: Array<{
@@ -17,20 +14,6 @@ export interface IMemory extends Document {
 
 const MemorySchema = new Schema<IMemory>(
   {
-    title: {
-      type: String,
-      trim: true,
-      default: "",
-    },
-    elderlyName: {
-      type: String,
-      trim: true,
-      default: "",
-    },
-    lifeMemories: {
-      type: String,
-      default: "",
-    },
     moments: {
       type: [String],
       default: [],
