@@ -147,20 +147,11 @@ export default function MemoryThankYouCard({ onSubmitted }: Props) {
       });
 
       // 2. Auto-save to database
-      const finalMoments =
-        moments.length > 0
-          ? moments
-          : lifeMemories.trim()
-            ? splitIntoMoments(lifeMemories)
-            : [];
-
       const saveRes = await fetch("/api/memories", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          title: title.trim() || "Untitled Memory",
-          lifeMemories: lifeMemories.trim(),
-          moments: finalMoments,
+          moments,
           imageUrls,
           imageAndInspiration: results || [],
         }),
@@ -209,22 +200,7 @@ export default function MemoryThankYouCard({ onSubmitted }: Props) {
     }
   };
 
-  const resetCard = () => {
-    setImageUrls([]);
-    setActivePhotoIndex(0);
-    setLifeMemories("");
-    setMoments([]);
-    setActiveMomentIndex(0);
-    setTitle("");
-    setUploadProgress(0);
-    setUploadCount({ done: 0, total: 0 });
-    setImageAndInspiration([]);
-    setInspirationProgress({ done: 0, total: 0 });
-    setError(null);
-    setSubmitted(false);
-  };
-
-  const hasContent = imageUrls.length > 0 || lifeMemories || title;
+  const hasContent = imageUrls.length > 0;
 
   return (
     <div className="flex flex-col items-center gap-6 w-full max-w-2xl mx-auto">

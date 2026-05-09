@@ -46,44 +46,15 @@ export default function MemoryList() {
 
   const startEditing = (memory: MemoryEntry) => {
     setEditingId(mid(memory));
-    setEditValues({
-      title: memory.title,
-      lifeMemories: memory.lifeMemories,
-      moments: (memory.moments || []).join("\n\n---\n\n"),
-    });
   };
 
   const cancelEditing = () => {
     setEditingId(null);
-    setEditValues({ title: "", lifeMemories: "", moments: "" });
   };
 
   const saveEdit = async (id: string) => {
     setIsSaving(true);
     try {
-      const moments = editValues.moments
-        .split(/\n*---\n*/)
-        .map((s) => s.trim())
-        .filter(Boolean);
-
-      const res = await fetch(`/api/memories/${id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: editValues.title.trim(),
-          lifeMemories: editValues.lifeMemories.trim(),
-          moments,
-        }),
-      });
-
-      if (!res.ok) throw new Error("Failed to save");
-
-      const updated = await res.json();
-      setMemories((prev) =>
-        prev.map((m) =>
-          m._id === id || m.id === id ? { ...m, ...updated } : m,
-        ),
-      );
       cancelEditing();
     } catch (err) {
       console.error("Save error:", err);
@@ -436,11 +407,7 @@ export default function MemoryList() {
                       <div className="flex gap-2 pt-1">
                         <button
                           onClick={() => saveEdit(id)}
-                          disabled={
-                            isSaving ||
-                            !editValues.title.trim() ||
-                            !editValues.lifeMemories.trim()
-                          }
+                          disabled={isSaving}
                           className="px-5 py-2 rounded-lg bg-blue-500/80 text-white text-xs font-medium
                                      hover:bg-blue-500 disabled:opacity-30 disabled:cursor-not-allowed
                                      transition-all flex items-center gap-1.5"
