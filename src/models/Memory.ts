@@ -6,6 +6,11 @@ export interface IMemory extends Document {
   lifeMemories: string;
   moments: string[];
   imageUrls: string[];
+  imageAndInspiration: Array<{
+    imageUrl: string;
+    description: string;
+    inspiration: string;
+  }>;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -33,6 +38,16 @@ const MemorySchema = new Schema<IMemory>(
     },
     imageUrls: {
       type: [String],
+      default: [],
+    },
+    imageAndInspiration: {
+      type: [
+        {
+          imageUrl: { type: String },
+          description: { type: String, default: "" },
+          inspiration: { type: String, default: "" },
+        },
+      ],
       default: [],
     },
   },
