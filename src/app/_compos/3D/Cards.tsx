@@ -88,7 +88,8 @@ export function Cards({ state, setState }: ProverbsCardProps) {
 }
 
 function OneCard({ info }: any) {
-  console.log(info);
+  // console.log(info);
+  //
   let tex: any = useTexture(info.imageUrl);
   return (
     <group>
