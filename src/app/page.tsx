@@ -10,11 +10,18 @@ import { Suspense, useEffect, useState } from "react";
 import { Canvas } from "@react-three/fiber";
 import { Cards } from "./_compos/3D/Cards";
 import { AgentStateType } from "@/mastra/agents";
-import { OrbitControls } from "@react-three/drei";
+import {
+  Center,
+  MeshTransmissionMaterial,
+  OrbitControls,
+  Text3D,
+} from "@react-three/drei";
 import MemoryThankYouCard from "@/components/memory-thankyou-card";
 import MemoryList from "@/components/memory-list";
 import { MemoryLoader } from "@/components/memory-loader";
 import slugify from "slugify";
+import { Logo } from "./_compos/3D/Logo/Logo";
+import { useAgent } from "@copilotkit/react-core/v2";
 export default function CopilotKitPage() {
   const [themeColor, setThemeColor] = useState("#6366f1");
 
@@ -101,16 +108,10 @@ function YourMainContent({
   //
   console.log("data", data);
   // 🪁 Shared State: https://docs.copilotkit.ai/mastra/shared-state/in-app-agent-read
-  const { state, setState } = useCoAgent<AgentStateType>({
+  const { state, setState, name } = useCoAgent<AgentStateType>({
     name: "weatherAgent",
     initialState: {
-      imageUrls: data?.[0].imageUrls,
-      memories: data?.[0].moments?.map((r: any) => {
-        return {
-          slug: `${slugify(r, { replacement: "_" })}`,
-          mempry: r,
-        };
-      }) || [
+      memories: [
         {
           slug: "hi",
           memory: "how are you?",
@@ -118,6 +119,7 @@ function YourMainContent({
       ],
     },
   });
+  const agent = useAgent({ agentId: name });
 
   // //🪁 Generative UI: https://docs.copilotkit.ai/mastra/generative-ui/tool-based
   // useCopilotAction(
@@ -147,6 +149,21 @@ function YourMainContent({
   //   [themeColor],
   // );
 
+  useCopilotAction({
+    name: "seeTouchingMoments",
+    parameters: [
+      {
+        name: "color",
+        description: "the primary color of the currnet mood",
+        required: true,
+      },
+    ],
+    handler({ color }) {
+      console.log(color);
+      //
+    },
+  });
+
   return (
     <div style={{ backgroundColor: themeColor }} className="h-screen relative">
       <div className="flex h-full w-full">
@@ -162,7 +179,7 @@ function YourMainContent({
           </div>
         </div>
         <div
-          className="h-full"
+          className="h-full relative"
           onWaitingCapture={(r) => {
             r.stopPropagation();
             r.preventDefault();
@@ -173,8 +190,27 @@ function YourMainContent({
             <Suspense fallback={null}>
               <Cards state={state} setState={setState}></Cards>
             </Suspense>
+
+            <Suspense fallback={null}>
+              <Logo></Logo>
+            </Suspense>
             <OrbitControls enableZoom={false} enablePan={false}></OrbitControls>
           </Canvas>
+
+          <div className=" absolute bottom-[5%] left-[5%] right-[5%] h-[100px] bg-white rounded-2xl p-3">
+            <button
+              onClick={() => {
+                //
+                agent.agent.addMessage({
+                  role: "user",
+                  content: `I want to see touching moments.`,
+                  id: `_${Math.random().toString(36).slice(2, 9)}`,
+                });
+              }}
+            >
+              See Touching Moments
+            </button>
+          </div>
         </div>
       </div>
       {/* <ProverbsCard state={state} setState={setState} /> */}

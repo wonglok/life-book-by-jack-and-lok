@@ -2,6 +2,12 @@
 
 import { useState, useRef, useCallback } from "react";
 
+export interface ImageAndInspiration {
+  imageUrl: string;
+  description: string;
+  inspiration: string;
+}
+
 export interface MemoryEntry {
   _id?: string;
   id: string;
@@ -10,6 +16,7 @@ export interface MemoryEntry {
   lifeMemories: string;
   moments: string[];
   imageUrls: string[];
+  imageAndInspiration: ImageAndInspiration[];
   createdAt: string;
   updatedAt: string;
 }
@@ -35,7 +42,14 @@ export default function MemoryThankYouCard({ onSubmitted }: Props) {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadCount, setUploadCount] = useState({ done: 0, total: 0 });
-  const [isExtracting, setIsExtracting] = useState(false);
+  const [isGeneratingInspiration, setIsGeneratingInspiration] = useState(false);
+  const [imageAndInspiration, setImageAndInspiration] = useState<
+    ImageAndInspiration[]
+  >([]);
+  const [inspirationProgress, setInspirationProgress] = useState({
+    done: 0,
+    total: 0,
+  });
   const [error, setError] = useState<string | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -119,13 +133,14 @@ export default function MemoryThankYouCard({ onSubmitted }: Props) {
     [uploadSingleToS3, imageUrls.length],
   );
 
-  const handleExtractMemories = async () => {
+  const handleGenerateInspiration = async () => {
     if (imageUrls.length === 0) return;
-    setIsExtracting(true);
+    setIsGeneratingInspiration(true);
+    setInspirationProgress({ done: 0, total: imageUrls.length });
     setError(null);
 
     try {
-      const res = await fetch("/api/extract-memories", {
+      const res = await fetch("/api/extract-inspiration", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ imageUrls }),
@@ -133,17 +148,18 @@ export default function MemoryThankYouCard({ onSubmitted }: Props) {
 
       if (!res.ok) {
         const err = await res.json();
-        throw new Error(err.error || "AI extraction failed");
+        throw new Error(err.error || "Inspiration generation failed");
       }
 
-      const { moments: aiMoments, narrative } = await res.json();
-      setMoments(aiMoments || []);
-      setActiveMomentIndex(0);
-      setLifeMemories(narrative || "");
+      const { imageAndInspiration: results } = await res.json();
+      setImageAndInspiration(results || []);
+      setInspirationProgress({ done: imageUrls.length, total: imageUrls.length });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Extraction failed");
+      setError(
+        err instanceof Error ? err.message : "Inspiration generation failed",
+      );
     } finally {
-      setIsExtracting(false);
+      setIsGeneratingInspiration(false);
     }
   };
 
@@ -194,6 +210,7 @@ export default function MemoryThankYouCard({ onSubmitted }: Props) {
           lifeMemories: lifeMemories.trim(),
           moments: finalMoments,
           imageUrls,
+          imageAndInspiration,
         }),
       });
 
@@ -221,6 +238,8 @@ export default function MemoryThankYouCard({ onSubmitted }: Props) {
     setTitle("");
     setUploadProgress(0);
     setUploadCount({ done: 0, total: 0 });
+    setImageAndInspiration([]);
+    setInspirationProgress({ done: 0, total: 0 });
     setError(null);
     setSubmitted(false);
   };
@@ -425,36 +444,82 @@ export default function MemoryThankYouCard({ onSubmitted }: Props) {
         {error && <p className="text-red-400 text-sm text-center">{error}</p>}
       </div>
 
-      {/* Extract Memories button */}
+      {/* Generate Inspiration button */}
       {imageUrls.length > 0 && (
         <button
-          onClick={handleExtractMemories}
-          disabled={isExtracting}
-          className="w-full py-3 rounded-xl border border-purple-400/30 bg-purple-400/10
-                     text-purple-300 text-sm font-medium
-                     hover:bg-purple-400/20 hover:border-purple-400/50
+          onClick={handleGenerateInspiration}
+          disabled={isGeneratingInspiration}
+          className="w-full py-3 rounded-xl border border-amber-400/30 bg-amber-400/10
+                     text-amber-300 text-sm font-medium
+                     hover:bg-amber-400/20 hover:border-amber-400/50
                      disabled:opacity-40 disabled:cursor-not-allowed
                      transition-all flex items-center justify-center gap-2"
         >
-          {isExtracting ? (
+          {isGeneratingInspiration ? (
             <>
               <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                 <path className="opacity-75" fill="currentColor"
                   d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
               </svg>
-              Extracting memories from photos...
+              Generating inspiration ({inspirationProgress.done}/{inspirationProgress.total})...
             </>
           ) : (
             <>
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                  d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456z" />
+                  d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
               </svg>
-              Extract memories from photos (AI)
+              Generate inspiration & description for each photo (AI)
             </>
           )}
         </button>
+      )}
+
+      {/* Inspiration cards */}
+      {imageAndInspiration.length > 0 && (
+        <div className="w-full space-y-2">
+          <p className="text-white/40 text-xs font-medium uppercase tracking-wide">
+            Photo Inspiration ({imageAndInspiration.length})
+          </p>
+          <div className="grid gap-3">
+            {imageAndInspiration.map((item, i) => (
+              <div
+                key={i}
+                className="flex gap-4 p-4 rounded-xl border border-white/10 bg-white/5
+                           hover:border-white/20 transition-all"
+              >
+                <img
+                  src={item.imageUrl}
+                  alt={`Photo ${i + 1}`}
+                  className="w-20 h-20 rounded-lg object-cover shrink-0"
+                />
+                <div className="flex-1 min-w-0 space-y-1.5">
+                  {item.description && (
+                    <div>
+                      <p className="text-white/30 text-xs uppercase tracking-wide mb-0.5">
+                        Description
+                      </p>
+                      <p className="text-white/60 text-xs leading-relaxed">
+                        {item.description}
+                      </p>
+                    </div>
+                  )}
+                  {item.inspiration && (
+                    <div>
+                      <p className="text-amber-300/50 text-xs uppercase tracking-wide mb-0.5">
+                        Inspiration
+                      </p>
+                      <p className="text-amber-200/70 text-xs leading-relaxed italic">
+                        &ldquo;{item.inspiration}&rdquo;
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       )}
 
       {/* Text Inputs */}

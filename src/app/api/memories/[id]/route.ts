@@ -1,6 +1,27 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import { Memory } from "@/models/Memory";
+import { S3Client, DeleteObjectsCommand } from "@aws-sdk/client-s3";
+
+function getS3Client() {
+  return new S3Client({
+    region: process.env.LOK_AWS_REGION || "ap-east-1",
+    credentials: {
+      accessKeyId: process.env.LOK_AWS_ACCESS_KEY!,
+      secretAccessKey: process.env.LOK_AWS_ACCESS_SECRET!,
+    },
+  });
+}
+
+function extractS3Key(url: string): string | null {
+  try {
+    const u = new URL(url);
+    // Path starts with "/" — strip it for S3 key
+    return u.pathname.slice(1);
+  } catch {
+    return null;
+  }
+}
 
 function corsHeaders() {
   return {
@@ -73,7 +94,7 @@ export async function PUT(
   }
 }
 
-// DELETE — remove a memory
+// DELETE — remove a memory and its S3 objects
 export async function DELETE(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
@@ -90,8 +111,31 @@ export async function DELETE(
       );
     }
 
+    // Collect all image URLs and extract S3 keys
+    const allUrls = [
+      ...(memory.imageUrls || []),
+      ...(memory.imageAndInspiration || []).map((i) => i.imageUrl),
+    ];
+
+    const keys = allUrls
+      .map(extractS3Key)
+      .filter((k): k is string => k !== null && k.length > 0);
+
+    // Batch delete from S3 (fire-and-forget — don't block the response)
+    if (keys.length > 0) {
+      const s3 = getS3Client();
+      s3.send(
+        new DeleteObjectsCommand({
+          Bucket: process.env.LOK_AWS_S3_BUCKET!,
+          Delete: { Objects: keys.map((Key) => ({ Key })), Quiet: true },
+        }),
+      ).catch((err) => {
+        console.error("S3 delete error (non-fatal):", err);
+      });
+    }
+
     return NextResponse.json(
-      { message: "Deleted" },
+      { message: "Deleted", s3KeysRemoved: keys.length },
       { headers: corsHeaders() },
     );
   } catch (error) {
