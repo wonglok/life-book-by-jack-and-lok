@@ -165,6 +165,7 @@ export default function MemoryThankYouCard({ onSubmitted }: Props) {
       const entry: MemoryEntry = await saveRes.json();
       setSubmitted(true);
       onSubmitted?.(entry);
+      window.location.reload();
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Inspiration generation failed",
