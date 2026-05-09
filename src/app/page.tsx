@@ -6,7 +6,12 @@ import { MoonCard } from "@/components/moon";
 import { AgentState } from "@/lib/types";
 import { useCoAgent, useCopilotAction } from "@copilotkit/react-core";
 import { CopilotKitCSSProperties, CopilotSidebar } from "@copilotkit/react-ui";
-import { useState } from "react";
+import { Suspense, useState } from "react";
+import { Canvas } from "@react-three/fiber";
+import { Cards } from "./_compos/3D/Cards";
+import { AgentStateType } from "@/mastra/agents";
+import { OrbitControls } from "@react-three/drei";
+import MemoryThankYouCard from "@/components/memory-thankyou-card";
 
 export default function CopilotKitPage() {
   const [themeColor, setThemeColor] = useState("#6366f1");
@@ -75,10 +80,15 @@ export default function CopilotKitPage() {
 
 function YourMainContent({ themeColor }: { themeColor: string }) {
   // 🪁 Shared State: https://docs.copilotkit.ai/mastra/shared-state/in-app-agent-read
-  const { state, setState } = useCoAgent<AgentState>({
+  const { state, setState } = useCoAgent<AgentStateType>({
     name: "weatherAgent",
     initialState: {
-      proverbs: ["Testing this is the first provebs 123."],
+      memories: [
+        {
+          slug: "hi",
+          memory: "how are you?",
+        },
+      ],
     },
   });
 
@@ -111,11 +121,26 @@ function YourMainContent({ themeColor }: { themeColor: string }) {
   );
 
   return (
-    <div
-      style={{ backgroundColor: themeColor }}
-      className="h-screen flex justify-center items-center flex-col transition-colors duration-300"
-    >
-      <ProverbsCard state={state} setState={setState} />
+    <div style={{ backgroundColor: themeColor }} className="h-screen relative">
+      <div className="flex h-full w-full">
+        <div className="h-full" style={{ width: `280px` }}>
+          <div className="text-white p-3">Welcome to lifebook!</div>
+          <div className="p-3">
+            <>
+              <MemoryThankYouCard></MemoryThankYouCard>
+            </>
+          </div>
+        </div>
+        <div className="h-full" style={{ width: `calc(100% - 280px)` }}>
+          <Canvas>
+            <Suspense fallback={null}>
+              <Cards state={state} setState={setState}></Cards>
+            </Suspense>
+            <OrbitControls></OrbitControls>
+          </Canvas>
+        </div>
+      </div>
+      {/* <ProverbsCard state={state} setState={setState} /> */}
     </div>
   );
 }

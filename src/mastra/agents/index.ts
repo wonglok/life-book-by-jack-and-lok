@@ -12,8 +12,15 @@ const deepseekProvider = createDeepSeek({
 });
 
 export const AgentState = z.object({
-  proverbs: z.array(z.string()).default([]),
+  memories: z.array(
+    z.object({
+      slug: z.string(),
+      memory: z.string(),
+    }),
+  ),
 });
+
+export type AgentStateType = z.infer<typeof AgentState>;
 
 export const weatherAgent = new Agent({
   id: "weather-agent",
