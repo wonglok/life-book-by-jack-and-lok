@@ -229,18 +229,18 @@ function YourMainContent({
                 //
                 agent.agent.addMessage({
                   role: "user",
-                  content: `I want to see touching moments, please suggest me some memories and set the theme color based on the moment.`,
+                  content: `I want to see happy moments, please suggest me items to view and set the theme color based on the moment.`,
                   id: `_${Math.random().toString(36).slice(2, 9)}`,
                 });
 
                 setState({
                   memories: first?.imageAndInspiration || [],
-                  suggestion: [],
+                  suggestion: state.suggestion || [],
                 });
                 copilotkit.runAgent({ agent: agent.agent });
               }}
             >
-              See Touching Moments
+              See Happy Moments
             </button>
           </div>
         </div>

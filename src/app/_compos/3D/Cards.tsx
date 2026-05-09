@@ -73,7 +73,7 @@ export function Cards({ state, setState }: ProverbsCardProps) {
 
       {state?.memories?.map((mem, idx) => {
         return (
-          <group position={[0, 0, 1]} key={mem._id + idx}>
+          <group position={[idx * 1.5, 0, 1]} key={mem._id + idx}>
             <Suspense fallback={null}>
               <OneCard mouse={refAccuTotal} info={mem}></OneCard>
             </Suspense>
