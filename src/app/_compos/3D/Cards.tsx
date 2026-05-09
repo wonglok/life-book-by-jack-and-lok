@@ -71,7 +71,7 @@ export function Cards({ state, setState }: ProverbsCardProps) {
         background
       ></Environment>
 
-      {state?.memories?.map((mem, idx) => {
+      {state?.suggestion?.map((mem, idx) => {
         return (
           <group position={[idx * 1.5, 0, 1]} key={mem._id + idx}>
             <Suspense fallback={null}>

@@ -12,20 +12,26 @@ const deepseekProvider = createDeepSeek({
 });
 
 export const AgentState = z.object({
-  memories: z.array(
-    z.object({
-      _id: z.string(),
-      inspiration: z.string(),
-      description: z.string(),
-      imageUrl: z.string(),
-    }),
-  ),
-  suggestion: z.array(
-    z.object({
-      slug: z.string(),
-      moodColor1: z.string(),
-    }),
-  ),
+  memories: z
+    .array(
+      z.object({
+        _id: z.string(),
+        inspiration: z.string(),
+        description: z.string(),
+        imageUrl: z.string(),
+      }),
+    )
+    .default([]),
+  suggestion: z
+    .array(
+      z.object({
+        _id: z.string(),
+        inspiration: z.string(),
+        description: z.string(),
+        imageUrl: z.string(),
+      }),
+    )
+    .default([]),
 });
 
 export type AgentStateType = z.infer<typeof AgentState>;
