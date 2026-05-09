@@ -12,6 +12,7 @@ import { Cards } from "./_compos/3D/Cards";
 import { AgentStateType } from "@/mastra/agents";
 import { OrbitControls } from "@react-three/drei";
 import MemoryThankYouCard from "@/components/memory-thankyou-card";
+import MemoryList from "@/components/memory-list";
 
 export default function CopilotKitPage() {
   const [themeColor, setThemeColor] = useState("#6366f1");
@@ -123,15 +124,18 @@ function YourMainContent({ themeColor }: { themeColor: string }) {
   return (
     <div style={{ backgroundColor: themeColor }} className="h-screen relative">
       <div className="flex h-full w-full">
-        <div className="h-full" style={{ width: `280px` }}>
-          <div className="text-white p-3">Welcome to lifebook!</div>
-          <div className="p-3">
+        <div className="h-full overflow-scroll" style={{ width: `350px` }}>
+          <div className="text-white p-5">Welcome to lifebook!</div>
+          <div className="p-5">
             <>
               <MemoryThankYouCard></MemoryThankYouCard>
             </>
+            <>
+              <MemoryList></MemoryList>
+            </>
           </div>
         </div>
-        <div className="h-full" style={{ width: `calc(100% - 280px)` }}>
+        <div className="h-full" style={{ width: `calc(100% - 350px)` }}>
           <Canvas>
             <Suspense fallback={null}>
               <Cards state={state} setState={setState}></Cards>

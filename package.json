@@ -31,6 +31,7 @@
     "@use-gesture/react": "^10.3.1",
     "libsql": "^0.5.22",
     "mastra": "beta",
+    "mongoose": "^9.6.2",
     "next": "16.1.2",
     "react": "^19.2.1",
     "react-dom": "^19.2.1",
