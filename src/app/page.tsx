@@ -6,14 +6,15 @@ import { MoonCard } from "@/components/moon";
 import { AgentState } from "@/lib/types";
 import { useCoAgent, useCopilotAction } from "@copilotkit/react-core";
 import { CopilotKitCSSProperties, CopilotSidebar } from "@copilotkit/react-ui";
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { Canvas } from "@react-three/fiber";
 import { Cards } from "./_compos/3D/Cards";
 import { AgentStateType } from "@/mastra/agents";
 import { OrbitControls } from "@react-three/drei";
 import MemoryThankYouCard from "@/components/memory-thankyou-card";
 import MemoryList from "@/components/memory-list";
-
+import { MemoryLoader } from "@/components/memory-loader";
+import slugify from "slugify";
 export default function CopilotKitPage() {
   const [themeColor, setThemeColor] = useState("#6366f1");
 
@@ -73,18 +74,43 @@ export default function CopilotKitPage() {
           },
         ]}
       >
-        <YourMainContent themeColor={themeColor} />
+        <MemoryLoader
+          insert={(data) => {
+            // console.log(data, "data");
+            return (
+              <>
+                {data instanceof Array && (
+                  <YourMainContent data={data} themeColor={themeColor} />
+                )}
+              </>
+            );
+          }}
+        ></MemoryLoader>
       </CopilotSidebar>
     </main>
   );
 }
 
-function YourMainContent({ themeColor }: { themeColor: string }) {
+function YourMainContent({
+  data,
+  themeColor,
+}: {
+  data: any;
+  themeColor: string;
+}) {
+  //
+  console.log("data", data);
   // 🪁 Shared State: https://docs.copilotkit.ai/mastra/shared-state/in-app-agent-read
   const { state, setState } = useCoAgent<AgentStateType>({
     name: "weatherAgent",
     initialState: {
-      memories: [
+      imageUrls: data?.[0].imageUrls,
+      memories: data?.[0].moments?.map((r: any) => {
+        return {
+          slug: `${slugify(r, { replacement: "_" })}`,
+          mempry: r,
+        };
+      }) || [
         {
           slug: "hi",
           memory: "how are you?",
@@ -93,33 +119,33 @@ function YourMainContent({ themeColor }: { themeColor: string }) {
     },
   });
 
-  //🪁 Generative UI: https://docs.copilotkit.ai/mastra/generative-ui/tool-based
-  useCopilotAction(
-    {
-      name: "weatherTool",
-      description: "Get the weather for a given location.",
-      available: "disabled",
-      parameters: [{ name: "location", type: "string", required: true }],
-      render: ({ args }) => {
-        return <WeatherCard location={args.location} themeColor={themeColor} />;
-      },
-    },
-    [themeColor],
-  );
+  // //🪁 Generative UI: https://docs.copilotkit.ai/mastra/generative-ui/tool-based
+  // useCopilotAction(
+  //   {
+  //     name: "weatherTool",
+  //     description: "Get the weather for a given location.",
+  //     available: "disabled",
+  //     parameters: [{ name: "location", type: "string", required: true }],
+  //     render: ({ args }) => {
+  //       return <WeatherCard location={args.location} themeColor={themeColor} />;
+  //     },
+  //   },
+  //   [themeColor],
+  // );
 
-  // 🪁 Human In the Loop: https://docs.copilotkit.ai/mastra/human-in-the-loop
-  useCopilotAction(
-    {
-      name: "go_to_moon",
-      description: "Go to the moon on request.",
-      renderAndWaitForResponse: ({ respond, status }) => {
-        return (
-          <MoonCard themeColor={themeColor} status={status} respond={respond} />
-        );
-      },
-    },
-    [themeColor],
-  );
+  // // 🪁 Human In the Loop: https://docs.copilotkit.ai/mastra/human-in-the-loop
+  // useCopilotAction(
+  //   {
+  //     name: "go_to_moon",
+  //     description: "Go to the moon on request.",
+  //     renderAndWaitForResponse: ({ respond, status }) => {
+  //       return (
+  //         <MoonCard themeColor={themeColor} status={status} respond={respond} />
+  //       );
+  //     },
+  //   },
+  //   [themeColor],
+  // );
 
   return (
     <div style={{ backgroundColor: themeColor }} className="h-screen relative">

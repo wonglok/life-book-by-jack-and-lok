@@ -24,15 +24,20 @@ export function Cards({ state, setState }: ProverbsCardProps) {
   let refAccuTotal = useRef(0);
   let refDelta = useRef(0);
 
+  //
   console.log("state", state);
 
   useFrame(() => {
+    //
+
     refAccuDelta.current *= 0.95;
     refAccuTotal.current += refAccuDelta.current;
 
     //
-    console.log(refAccuTotal.current);
+    // console.log(refAccuTotal.current);
   });
+
+  //
 
   useEffect(() => {
     refAccuDelta.current = 0;
@@ -59,6 +64,9 @@ export function Cards({ state, setState }: ProverbsCardProps) {
   const sunset = useEnvironment({
     files: [`/hdr/museum_of_ethnography_1k.hdr`],
   });
+
+  //
+
   return (
     <>
       <Environment
@@ -69,7 +77,7 @@ export function Cards({ state, setState }: ProverbsCardProps) {
       {state?.memories?.map((mem, idx) => {
         return (
           <group key={mem.slug + idx}>
-            <OneCard info={mem}></OneCard>
+            <OneCard mouse={refAccuTotal} info={mem}></OneCard>
           </group>
         );
       })}
@@ -81,6 +89,7 @@ export function Cards({ state, setState }: ProverbsCardProps) {
           font={`/fonts/helvetiker_regular.typeface.json`}
         >
           {`Lifebook`}
+
           <MeshTransmissionMaterial
             envMap={sunset}
             thickness={2}
@@ -100,6 +109,7 @@ export function Cards({ state, setState }: ProverbsCardProps) {
 
 function OneCard({ info }: any) {
   console.log(info);
+
   return (
     <group>
       <mesh>

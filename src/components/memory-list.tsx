@@ -8,6 +8,13 @@ export default function MemoryList() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editValues, setEditValues] = useState<{
+    title: string;
+    lifeMemories: string;
+    moments: string;
+  }>({ title: "", lifeMemories: "", moments: "" });
+  const [isSaving, setIsSaving] = useState(false);
   const [activePhotoIdx, setActivePhotoIdx] = useState<Record<string, number>>({});
 
   const fetchMemories = useCallback(async () => {
@@ -36,6 +43,52 @@ export default function MemoryList() {
       if (expandedId === id) setExpandedId(null);
     } catch (err) {
       console.error("Delete error:", err);
+    }
+  };
+
+  const startEditing = (memory: MemoryEntry) => {
+    setEditingId(mid(memory));
+    setEditValues({
+      title: memory.title,
+      lifeMemories: memory.lifeMemories,
+      moments: (memory.moments || []).join("\n\n---\n\n"),
+    });
+  };
+
+  const cancelEditing = () => {
+    setEditingId(null);
+    setEditValues({ title: "", lifeMemories: "", moments: "" });
+  };
+
+  const saveEdit = async (id: string) => {
+    setIsSaving(true);
+    try {
+      const moments = editValues.moments
+        .split(/\n*---\n*/)
+        .map((s) => s.trim())
+        .filter(Boolean);
+
+      const res = await fetch(`/api/memories/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: editValues.title.trim(),
+          lifeMemories: editValues.lifeMemories.trim(),
+          moments,
+        }),
+      });
+
+      if (!res.ok) throw new Error("Failed to save");
+
+      const updated = await res.json();
+      setMemories((prev) =>
+        prev.map((m) => ((m._id === id || m.id === id) ? { ...m, ...updated } : m)),
+      );
+      cancelEditing();
+    } catch (err) {
+      console.error("Save error:", err);
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -183,7 +236,7 @@ export default function MemoryList() {
               {/* Expanded content */}
               {isExpanded && (
                 <div className="px-4 pb-4 space-y-4">
-                  {/* Photo gallery */}
+                  {/* Photo gallery (always visible, even in edit mode) */}
                   {memory.imageUrls.length > 0 && (
                     <div className="space-y-2">
                       <div className="relative rounded-lg overflow-hidden aspect-4/3 bg-black/20">
@@ -252,53 +305,138 @@ export default function MemoryList() {
                     </div>
                   )}
 
-                  {/* Moments list */}
-                  {memory.moments?.length > 0 && (
-                    <div className="space-y-2">
-                      <p className="text-white/30 text-xs font-medium uppercase tracking-wide">
-                        Moments
-                      </p>
-                      {memory.moments.map((moment, i) => (
-                        <div key={i} className="flex gap-2 p-2.5 rounded-lg bg-white/5 border border-white/5">
-                          <span className="text-white/20 text-xs shrink-0 mt-0.5 font-mono">
-                            {String(i + 1).padStart(2, "0")}
-                          </span>
-                          <p className="text-white/50 text-xs leading-relaxed">{moment}</p>
-                        </div>
-                      ))}
+                  {/* ---- EDIT MODE ---- */}
+                  {editingId === id ? (
+                    <div className="space-y-3">
+                      <input
+                        type="text"
+                        value={editValues.title}
+                        onChange={(e) => setEditValues((prev) => ({ ...prev, title: e.target.value }))}
+                        placeholder="Title"
+                        className="w-full px-3 py-2 rounded-lg border border-white/20 bg-white/5
+                                   text-white text-sm placeholder-white/30
+                                   focus:outline-none focus:border-blue-400/50 focus:bg-white/10
+                                   transition-all"
+                      />
+                      <textarea
+                        value={editValues.lifeMemories}
+                        onChange={(e) => setEditValues((prev) => ({ ...prev, lifeMemories: e.target.value }))}
+                        placeholder="Life memories narrative..."
+                        rows={6}
+                        className="w-full px-3 py-2 rounded-lg border border-white/20 bg-white/5
+                                   text-white text-sm placeholder-white/30 resize-y
+                                   focus:outline-none focus:border-blue-400/50 focus:bg-white/10
+                                   transition-all"
+                      />
+                      <div>
+                        <p className="text-white/30 text-xs mb-1.5">
+                          Moments — separated by <code className="text-white/40">---</code> on its own line
+                        </p>
+                        <textarea
+                          value={editValues.moments}
+                          onChange={(e) => setEditValues((prev) => ({ ...prev, moments: e.target.value }))}
+                          placeholder={"First moment here...\n\n---\n\nSecond moment here..."}
+                          rows={5}
+                          className="w-full px-3 py-2 rounded-lg border border-white/20 bg-white/5
+                                     text-white text-sm placeholder-white/30 resize-y
+                                     focus:outline-none focus:border-blue-400/50 focus:bg-white/10
+                                     transition-all"
+                        />
+                      </div>
+
+                      {/* Edit actions */}
+                      <div className="flex gap-2 pt-1">
+                        <button
+                          onClick={() => saveEdit(id)}
+                          disabled={isSaving || !editValues.title.trim() || !editValues.lifeMemories.trim()}
+                          className="px-5 py-2 rounded-lg bg-blue-500/80 text-white text-xs font-medium
+                                     hover:bg-blue-500 disabled:opacity-30 disabled:cursor-not-allowed
+                                     transition-all flex items-center gap-1.5"
+                        >
+                          {isSaving ? (
+                            <>
+                              <svg className="animate-spin h-3.5 w-3.5" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                              </svg>
+                              Saving...
+                            </>
+                          ) : (
+                            "Save changes"
+                          )}
+                        </button>
+                        <button
+                          onClick={cancelEditing}
+                          disabled={isSaving}
+                          className="px-4 py-2 rounded-lg border border-white/20 text-white/50 text-xs
+                                     hover:bg-white/10 disabled:opacity-30 transition-all"
+                        >
+                          Cancel
+                        </button>
+                      </div>
                     </div>
+                  ) : (
+                    /* ---- VIEW MODE ---- */
+                    <>
+                      {/* Moments list */}
+                      {memory.moments?.length > 0 && (
+                        <div className="space-y-2">
+                          <p className="text-white/30 text-xs font-medium uppercase tracking-wide">
+                            Moments
+                          </p>
+                          {memory.moments.map((moment, i) => (
+                            <div key={i} className="flex gap-2 p-2.5 rounded-lg bg-white/5 border border-white/5">
+                              <span className="text-white/20 text-xs shrink-0 mt-0.5 font-mono">
+                                {String(i + 1).padStart(2, "0")}
+                              </span>
+                              <p className="text-white/50 text-xs leading-relaxed">{moment}</p>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Full narrative */}
+                      <div className="text-white/70 text-sm leading-relaxed whitespace-pre-line max-h-64 overflow-y-auto">
+                        {memory.lifeMemories}
+                      </div>
+
+                      {/* Timestamps */}
+                      <div className="text-white/30 text-xs space-y-0.5">
+                        <p>
+                          Created:{" "}
+                          {new Date(memory.createdAt).toLocaleString("en-US", {
+                            year: "numeric", month: "short", day: "numeric",
+                            hour: "2-digit", minute: "2-digit",
+                          })}
+                        </p>
+                        <p>
+                          Updated:{" "}
+                          {new Date(memory.updatedAt).toLocaleString("en-US", {
+                            year: "numeric", month: "short", day: "numeric",
+                            hour: "2-digit", minute: "2-digit",
+                          })}
+                        </p>
+                      </div>
+
+                      {/* Action buttons */}
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => startEditing(memory)}
+                          className="px-4 py-2 rounded-lg border border-white/20 text-white/60 text-xs
+                                     hover:bg-white/10 hover:border-white/40 transition-all"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => deleteMemory(id)}
+                          className="px-4 py-2 rounded-lg border border-red-400/20 text-red-400/70 text-xs
+                                     hover:bg-red-400/10 hover:border-red-400/40 transition-all"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </>
                   )}
-
-                  {/* Full narrative */}
-                  <div className="text-white/70 text-sm leading-relaxed whitespace-pre-line max-h-64 overflow-y-auto">
-                    {memory.lifeMemories}
-                  </div>
-
-                  {/* Timestamps */}
-                  <div className="text-white/30 text-xs space-y-0.5">
-                    <p>
-                      Created:{" "}
-                      {new Date(memory.createdAt).toLocaleString("en-US", {
-                        year: "numeric", month: "short", day: "numeric",
-                        hour: "2-digit", minute: "2-digit",
-                      })}
-                    </p>
-                    <p>
-                      Updated:{" "}
-                      {new Date(memory.updatedAt).toLocaleString("en-US", {
-                        year: "numeric", month: "short", day: "numeric",
-                        hour: "2-digit", minute: "2-digit",
-                      })}
-                    </p>
-                  </div>
-
-                  <button
-                    onClick={() => deleteMemory(id)}
-                    className="px-4 py-2 rounded-lg border border-red-400/20 text-red-400/70 text-xs
-                               hover:bg-red-400/10 hover:border-red-400/40 transition-all"
-                  >
-                    Delete memory
-                  </button>
                 </div>
               )}
             </div>
