@@ -204,8 +204,8 @@ function YourMainContent({
   return (
     <div style={{ backgroundColor: themeColor }} className="h-screen relative">
       <div className="flex h-full w-full">
-        <div className="h-full overflow-scroll" style={{ width: `350px` }}>
-          <div className="text-white p-5">Welcome to lifebook!</div>
+        <div className="h-full overflow-scroll" style={{ width: `0px` }}>
+          {/* <div className="text-white p-5">Welcome to lifebook!</div>
           <div className="p-5">
             <>
               <MemoryThankYouCard></MemoryThankYouCard>
@@ -213,7 +213,7 @@ function YourMainContent({
             <>
               <MemoryList></MemoryList>
             </>
-          </div>
+          </div> */}
         </div>
         <div
           className="h-full relative"
@@ -221,7 +221,7 @@ function YourMainContent({
             r.stopPropagation();
             r.preventDefault();
           }}
-          style={{ width: `calc(100% - 350px)` }}
+          style={{ width: `calc(100% - 0px)` }}
         >
           <Canvas>
             <Suspense fallback={null}>
