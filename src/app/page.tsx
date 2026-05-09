@@ -56,30 +56,34 @@ export default function CopilotKitPage() {
           initial: "👋 Hi, there! You're chatting with an agent.",
         }}
         suggestions={[
+          // {
+          //   title: "Generative UI",
+          //   message: "Get the weather in San Francisco.",
+          // },
+          // {
+          //   title: "Frontend Tools",
+          //   message: "Set the theme to green.",
+          // },
+          // {
+          //   title: "Human In the Loop",
+          //   message: "Please go to the moon.",
+          // },
+          // {
+          //   title: "Write Agent State",
+          //   message: "Add a proverb about AI.",
+          // },
+          // {
+          //   title: "Update Agent State",
+          //   message:
+          //     "Please remove 1 random proverb from the list if there are any.",
+          // },
           {
-            title: "Generative UI",
-            message: "Get the weather in San Francisco.",
+            title: "What vibe do i have?",
+            message: "What photos do we have?",
           },
           {
-            title: "Frontend Tools",
-            message: "Set the theme to green.",
-          },
-          {
-            title: "Human In the Loop",
-            message: "Please go to the moon.",
-          },
-          {
-            title: "Write Agent State",
-            message: "Add a proverb about AI.",
-          },
-          {
-            title: "Update Agent State",
-            message:
-              "Please remove 1 random proverb from the list if there are any.",
-          },
-          {
-            title: "Read Agent State",
-            message: "What are the proverbs?",
+            title: "Inspire me!",
+            message: "Send me some inspiration from the photos we have.",
           },
         ]}
       >
