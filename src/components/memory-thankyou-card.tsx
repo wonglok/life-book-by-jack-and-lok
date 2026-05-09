@@ -52,7 +52,6 @@ export default function MemoryThankYouCard({ onSubmitted }: Props) {
   });
   const [error, setError] = useState<string | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -140,6 +139,7 @@ export default function MemoryThankYouCard({ onSubmitted }: Props) {
     setError(null);
 
     try {
+      // 1. Generate inspiration for each photo
       const res = await fetch("/api/extract-inspiration", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -154,6 +154,33 @@ export default function MemoryThankYouCard({ onSubmitted }: Props) {
       const { imageAndInspiration: results } = await res.json();
       setImageAndInspiration(results || []);
       setInspirationProgress({ done: imageUrls.length, total: imageUrls.length });
+
+      // 2. Auto-save to database
+      const finalMoments =
+        moments.length > 0 ? moments : lifeMemories.trim()
+          ? splitIntoMoments(lifeMemories)
+          : [];
+
+      const saveRes = await fetch("/api/memories", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: title.trim() || "Untitled Memory",
+          lifeMemories: lifeMemories.trim(),
+          moments: finalMoments,
+          imageUrls,
+          imageAndInspiration: results || [],
+        }),
+      });
+
+      if (!saveRes.ok) {
+        const err = await saveRes.json();
+        throw new Error(err.error || "Auto-save failed");
+      }
+
+      const entry: MemoryEntry = await saveRes.json();
+      setSubmitted(true);
+      onSubmitted?.(entry);
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Inspiration generation failed",
@@ -186,46 +213,6 @@ export default function MemoryThankYouCard({ onSubmitted }: Props) {
     setImageUrls((prev) => prev.filter((_, i) => i !== index));
     if (activePhotoIndex >= index && activePhotoIndex > 0) {
       setActivePhotoIndex((prev) => Math.max(0, prev - 1));
-    }
-  };
-
-  const handleSubmit = async () => {
-    if (!lifeMemories.trim()) {
-      setError("Please write some life memories before submitting");
-      return;
-    }
-
-    setIsSubmitting(true);
-    setError(null);
-
-    const finalMoments =
-      moments.length > 0 ? moments : splitIntoMoments(lifeMemories);
-
-    try {
-      const res = await fetch("/api/memories", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: title.trim() || "Untitled Memory",
-          lifeMemories: lifeMemories.trim(),
-          moments: finalMoments,
-          imageUrls,
-          imageAndInspiration,
-        }),
-      });
-
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || "Failed to save memory");
-      }
-
-      const entry: MemoryEntry = await res.json();
-      setIsSubmitting(false);
-      setSubmitted(true);
-      onSubmitted?.(entry);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to save memory");
-      setIsSubmitting(false);
     }
   };
 
@@ -534,20 +521,6 @@ export default function MemoryThankYouCard({ onSubmitted }: Props) {
                      focus:outline-none focus:border-white/40 focus:bg-white/10
                      transition-all backdrop-blur-sm"
         />
-        <textarea
-          value={lifeMemories}
-          onChange={(e) => {
-            setLifeMemories(e.target.value);
-            // Clear AI moments if user edits manually
-            if (moments.length > 0) setMoments([]);
-          }}
-          placeholder="Paste the elderly's life memories here... their stories, wisdom, special moments, and family history."
-          rows={8}
-          className="w-full px-4 py-3 rounded-xl border border-white/20 bg-white/5
-                     text-white placeholder-white/30 text-sm
-                     focus:outline-none focus:border-white/40 focus:bg-white/10
-                     transition-all backdrop-blur-sm resize-y"
-        />
       </div>
 
       {/* Moments display */}
@@ -576,29 +549,7 @@ export default function MemoryThankYouCard({ onSubmitted }: Props) {
 
       {/* Action buttons */}
       <div className="w-full flex gap-3 justify-center">
-        {!submitted ? (
-          <button
-            onClick={handleSubmit}
-            disabled={isSubmitting || !lifeMemories.trim()}
-            className="px-8 py-3 rounded-full font-medium text-sm transition-all
-                       bg-white/90 text-gray-900 hover:bg-white
-                       disabled:opacity-30 disabled:cursor-not-allowed
-                       shadow-lg shadow-black/20"
-          >
-            {isSubmitting ? (
-              <span className="flex items-center gap-2">
-                <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                </svg>
-                Saving...
-              </span>
-            ) : (
-              "Save Memory"
-            )}
-          </button>
-        ) : (
+        {submitted && (
           <p className="text-green-400 text-sm flex items-center gap-1.5 py-3">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />

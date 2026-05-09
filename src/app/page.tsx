@@ -22,23 +22,24 @@ import { MemoryLoader } from "@/components/memory-loader";
 import slugify from "slugify";
 import { Logo } from "./_compos/3D/Logo/Logo";
 import { useAgent } from "@copilotkit/react-core/v2";
+import { Bubble } from "./_compos/3D/Bubble/Bubble";
 export default function CopilotKitPage() {
   const [themeColor, setThemeColor] = useState("#6366f1");
 
-  // 🪁 Frontend Actions: https://docs.copilotkit.ai/mastra/frontend-actions
-  useCopilotAction({
-    name: "setThemeColor",
-    parameters: [
-      {
-        name: "themeColor",
-        description: "The theme color to set. Make sure to pick nice colors.",
-        required: true,
-      },
-    ],
-    handler({ themeColor }) {
-      setThemeColor(themeColor);
-    },
-  });
+  // // 🪁 Frontend Actions: https://docs.copilotkit.ai/mastra/frontend-actions
+  // useCopilotAction({
+  //   name: "setThemeColor",
+  //   parameters: [
+  //     {
+  //       name: "themeColor",
+  //       description: "The theme color to set. Make sure to pick nice colors.",
+  //       required: true,
+  //     },
+  //   ],
+  //   handler({ themeColor }) {
+  //     setThemeColor(themeColor);
+  //   },
+  // });
 
   return (
     <main
@@ -83,7 +84,6 @@ export default function CopilotKitPage() {
       >
         <MemoryLoader
           insert={(data) => {
-            // console.log(data, "data");
             return (
               <>
                 {data instanceof Array && (
@@ -150,16 +150,17 @@ function YourMainContent({
   // );
 
   useCopilotAction({
-    name: "seeTouchingMoments",
+    name: "set theme color",
     parameters: [
       {
         name: "color",
-        description: "the primary color of the currnet mood",
+        description: "The theme color to set. Make sure to pick nice colors.",
         required: true,
       },
     ],
     handler({ color }) {
       console.log(color);
+
       //
     },
   });
@@ -194,16 +195,20 @@ function YourMainContent({
             <Suspense fallback={null}>
               <Logo></Logo>
             </Suspense>
+            <Suspense fallback={null}>
+              <Bubble></Bubble>
+            </Suspense>
             <OrbitControls enableZoom={false} enablePan={false}></OrbitControls>
           </Canvas>
 
           <div className=" absolute bottom-[5%] left-[5%] right-[5%] h-[100px] bg-white rounded-2xl p-3">
             <button
+              className="p-2 bg-gray-200 bodder rounded-2xl"
               onClick={() => {
                 //
                 agent.agent.addMessage({
                   role: "user",
-                  content: `I want to see touching moments.`,
+                  content: `I want to see touching moments and set the theme color based on the moment.`,
                   id: `_${Math.random().toString(36).slice(2, 9)}`,
                 });
               }}

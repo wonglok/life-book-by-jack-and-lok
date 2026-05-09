@@ -18,6 +18,12 @@ export const AgentState = z.object({
       memory: z.string(),
     }),
   ),
+  suggestion: z.array(
+    z.object({
+      slug: z.string(),
+      moodColor1: z.string(),
+    }),
+  ),
 });
 
 export type AgentStateType = z.infer<typeof AgentState>;
