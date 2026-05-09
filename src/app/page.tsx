@@ -108,6 +108,8 @@ function YourMainContent({
   //
   let first = data?.[0];
   console.log("first", first);
+
+  console.log("imageAndInspiration", first?.imageAndInspiration);
   // 🪁 Shared State: https://docs.copilotkit.ai/mastra/shared-state/in-app-agent-read
   const { state, setState, name } = useCoAgent<AgentStateType>({
     name: "weatherAgent",

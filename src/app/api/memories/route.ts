@@ -41,13 +41,6 @@ export async function POST(req: NextRequest) {
 
     const { title, elderlyName, lifeMemories, moments, imageUrls } = body;
 
-    if (!title || !lifeMemories) {
-      return NextResponse.json(
-        { error: "title and lifeMemories are required" },
-        { status: 400, headers: corsHeaders() },
-      );
-    }
-
     const memory = await Memory.create({
       title,
       elderlyName: elderlyName || "",

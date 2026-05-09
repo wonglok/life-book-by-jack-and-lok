@@ -1,5 +1,6 @@
 import {
   Center,
+  Icosahedron,
   MeshTransmissionMaterial,
   Sphere,
   Text3D,
@@ -33,12 +34,13 @@ export const Bubble = () => {
         ></MeshTransmissionMaterial>
       </Text3D> */}
       <group>
-        <Sphere scale={100}>
+        {/* <Icosahedron args={[2, 1]} scale={100}>
           <meshPhysicalMaterial
             side={DoubleSide}
             color={moodColor1}
+            metalness={0}
           ></meshPhysicalMaterial>
-        </Sphere>
+        </Icosahedron> */}
         {/*  */}
 
         {/*  */}

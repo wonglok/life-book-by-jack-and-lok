@@ -19,9 +19,8 @@ const MemorySchema = new Schema<IMemory>(
   {
     title: {
       type: String,
-      required: true,
       trim: true,
-      maxlength: 200,
+      default: "",
     },
     elderlyName: {
       type: String,
@@ -30,7 +29,7 @@ const MemorySchema = new Schema<IMemory>(
     },
     lifeMemories: {
       type: String,
-      required: true,
+      default: "",
     },
     moments: {
       type: [String],
@@ -55,8 +54,8 @@ const MemorySchema = new Schema<IMemory>(
     timestamps: true,
     toJSON: {
       virtuals: true,
-      transform: (_doc, ret) => {
-        ret.id = ret._id.toString();
+      transform: (_doc, ret: Record<string, unknown>) => {
+        ret.id = String(ret._id);
         delete ret.__v;
         return ret;
       },
