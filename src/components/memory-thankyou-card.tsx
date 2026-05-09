@@ -2,19 +2,56 @@
 
 import { useState, useRef, useCallback } from "react";
 
-export default function MemoryThankYouCard() {
-  const [imageUrl, setImageUrl] = useState<string | null>(null);
-  const [message, setMessage] = useState("");
-  const [author, setAuthor] = useState("");
+export interface MemoryEntry {
+  id: string;
+  title: string;
+  lifeMemories: string;
+  imageUrls: string[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface Props {
+  onSubmitted?: (entry: MemoryEntry) => void;
+}
+
+const STORAGE_KEY = "life-book-memories";
+
+export function saveMemory(entry: MemoryEntry) {
+  const existing = getMemories();
+  const idx = existing.findIndex((m) => m.id === entry.id);
+  if (idx >= 0) {
+    existing[idx] = entry;
+  } else {
+    existing.unshift(entry);
+  }
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(existing));
+}
+
+export function getMemories(): MemoryEntry[] {
+  if (typeof window === "undefined") return [];
+  try {
+    return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+  } catch {
+    return [];
+  }
+}
+
+export default function MemoryThankYouCard({ onSubmitted }: Props) {
+  const [imageUrls, setImageUrls] = useState<string[]>([]);
+  const [activePhotoIndex, setActivePhotoIndex] = useState(0);
+  const [lifeMemories, setLifeMemories] = useState("");
+  const [title, setTitle] = useState("");
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadCount, setUploadCount] = useState({ done: 0, total: 0 });
   const [error, setError] = useState<string | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const uploadToS3 = useCallback(async (file: File): Promise<string> => {
-    // 1. Get presigned POST URL from our API
-    setUploadProgress(10);
+  const uploadSingleToS3 = useCallback(async (file: File): Promise<string> => {
     const presignedRes = await fetch("/api/upload", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -30,9 +67,7 @@ export default function MemoryThankYouCard() {
     }
 
     const { url, fields, cdnUrl } = await presignedRes.json();
-    setUploadProgress(20);
 
-    // 2. Upload directly to S3 using presigned POST
     const formData = new FormData();
     for (const [key, value] of Object.entries(fields)) {
       formData.append(key, value as string);
@@ -42,14 +77,6 @@ export default function MemoryThankYouCard() {
     await new Promise<void>((resolve, reject) => {
       const xhr = new XMLHttpRequest();
       xhr.open("POST", url);
-
-      xhr.upload.addEventListener("progress", (e) => {
-        if (e.lengthComputable) {
-          // Progress from 20% to 90% during upload phase
-          const pct = 20 + Math.round((e.loaded / e.total) * 70);
-          setUploadProgress(pct);
-        }
-      });
 
       xhr.addEventListener("load", () => {
         if (xhr.status >= 200 && xhr.status < 300) {
@@ -65,81 +92,118 @@ export default function MemoryThankYouCard() {
       xhr.send(formData);
     });
 
-    setUploadProgress(100);
-    // Return CDN URL if available, otherwise construct S3 URL
     return cdnUrl || `${url}${fields.key}`;
   }, []);
 
-  const handleFile = useCallback(
-    async (file: File) => {
-      // Validate file type
-      if (!file.type.startsWith("image/")) {
-        setError("Please select an image file");
-        return;
-      }
+  const handleFiles = useCallback(
+    async (files: FileList | File[]) => {
+      const fileArray = Array.from(files);
 
-      // Validate file size (10MB max)
-      if (file.size > 10 * 1024 * 1024) {
-        setError("Image must be under 10MB");
-        return;
+      for (const file of fileArray) {
+        if (!file.type.startsWith("image/")) {
+          setError("All files must be images");
+          return;
+        }
+        if (file.size > 10 * 1024 * 1024) {
+          setError("Each image must be under 10MB");
+          return;
+        }
       }
 
       setError(null);
       setIsUploading(true);
       setUploadProgress(0);
+      setUploadCount({ done: 0, total: fileArray.length });
 
       try {
-        const url = await uploadToS3(file);
-        setImageUrl(url);
+        const urls: string[] = [];
+        for (let i = 0; i < fileArray.length; i++) {
+          const url = await uploadSingleToS3(fileArray[i]);
+          urls.push(url);
+          setUploadCount({ done: i + 1, total: fileArray.length });
+          setUploadProgress(Math.round(((i + 1) / fileArray.length) * 100));
+        }
+        setImageUrls((prev) => [...prev, ...urls]);
+        if (imageUrls.length === 0 && urls.length > 0) {
+          setActivePhotoIndex(0);
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : "Upload failed");
       } finally {
         setIsUploading(false);
       }
     },
-    [uploadToS3],
+    [uploadSingleToS3, imageUrls.length],
   );
 
   const handleDrop = useCallback(
     (e: React.DragEvent) => {
       e.preventDefault();
       setIsDragOver(false);
-      const file = e.dataTransfer.files[0];
-      if (file) handleFile(file);
+      if (e.dataTransfer.files.length > 0) {
+        handleFiles(e.dataTransfer.files);
+      }
     },
-    [handleFile],
+    [handleFiles],
   );
 
   const handleFileSelect = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files?.[0];
-      if (file) handleFile(file);
+      if (e.target.files && e.target.files.length > 0) {
+        handleFiles(e.target.files);
+      }
+      e.target.value = "";
     },
-    [handleFile],
+    [handleFiles],
   );
 
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragOver(true);
+  const removePhoto = (index: number) => {
+    setImageUrls((prev) => prev.filter((_, i) => i !== index));
+    if (activePhotoIndex >= index && activePhotoIndex > 0) {
+      setActivePhotoIndex((prev) => Math.max(0, prev - 1));
+    }
   };
 
-  const handleDragLeave = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragOver(false);
+  const handleSubmit = () => {
+    if (!lifeMemories.trim()) {
+      setError("Please write some life memories before submitting");
+      return;
+    }
+
+    setIsSubmitting(true);
+    setError(null);
+
+    const now = new Date().toISOString();
+    const entry: MemoryEntry = {
+      id: crypto.randomUUID(),
+      title: title.trim() || "Untitled Memory",
+      lifeMemories: lifeMemories.trim(),
+      imageUrls,
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    saveMemory(entry);
+    setIsSubmitting(false);
+    setSubmitted(true);
+    onSubmitted?.(entry);
   };
 
   const resetCard = () => {
-    setImageUrl(null);
-    setMessage("");
-    setAuthor("");
+    setImageUrls([]);
+    setActivePhotoIndex(0);
+    setLifeMemories("");
+    setTitle("");
     setUploadProgress(0);
+    setUploadCount({ done: 0, total: 0 });
     setError(null);
+    setSubmitted(false);
   };
 
-  const hasContent = imageUrl || message || author;
+  const hasContent = imageUrls.length > 0 || lifeMemories || title;
 
   return (
-    <div className="flex flex-col items-center gap-8 w-full max-w-2xl mx-auto">
+    <div className="flex flex-col items-center gap-6 w-full max-w-2xl mx-auto">
       {/* Card Preview */}
       <div
         className="relative w-full aspect-4/3 rounded-2xl shadow-2xl overflow-hidden transition-all duration-500"
@@ -151,18 +215,77 @@ export default function MemoryThankYouCard() {
           border: "1px solid rgba(255,255,255,0.2)",
         }}
       >
-        {imageUrl ? (
+        {imageUrls.length > 0 ? (
           <div className="absolute inset-0">
             <img
-              src={imageUrl}
-              alt="Memory"
-              className="w-full h-full object-cover"
+              src={imageUrls[activePhotoIndex]}
+              alt={`Memory ${activePhotoIndex + 1}`}
+              className="w-full h-full object-cover transition-opacity duration-500"
             />
-            {/* Gradient overlay for text readability */}
             <div className="absolute inset-0 bg-linear-to-t from-black/70 via-black/20 to-transparent" />
+
+            {/* Navigation arrows */}
+            {imageUrls.length > 1 && (
+              <>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setActivePhotoIndex((prev) =>
+                      prev === 0 ? imageUrls.length - 1 : prev - 1,
+                    );
+                  }}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full
+                             bg-black/30 hover:bg-black/50 text-white flex items-center justify-center
+                             transition-all z-20 backdrop-blur-sm"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setActivePhotoIndex((prev) =>
+                      prev === imageUrls.length - 1 ? 0 : prev + 1,
+                    );
+                  }}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full
+                             bg-black/30 hover:bg-black/50 text-white flex items-center justify-center
+                             transition-all z-20 backdrop-blur-sm"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+
+                {/* Dots */}
+                <div className="absolute top-4 left-1/2 -translate-x-1/2 flex gap-1.5 z-20">
+                  {imageUrls.map((_, i) => (
+                    <button
+                      key={i}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setActivePhotoIndex(i);
+                      }}
+                      className={`w-2 h-2 rounded-full transition-all ${
+                        i === activePhotoIndex
+                          ? "bg-white scale-125"
+                          : "bg-white/40 hover:bg-white/70"
+                      }`}
+                    />
+                  ))}
+                </div>
+              </>
+            )}
+
+            {imageUrls.length > 1 && (
+              <div className="absolute top-4 right-4 px-2.5 py-1 rounded-full bg-black/40
+                             backdrop-blur-sm text-white text-xs z-20">
+                {activePhotoIndex + 1} / {imageUrls.length}
+              </div>
+            )}
           </div>
         ) : (
-          /* Empty state */
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="text-center text-white/40">
               <svg
@@ -178,165 +301,208 @@ export default function MemoryThankYouCard() {
                   d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
                 />
               </svg>
-              <p className="text-sm">Add a photo to your memory card</p>
+              <p className="text-sm">Add photos to the memory book</p>
             </div>
           </div>
         )}
 
-        {/* Message overlay */}
-        {message && (
-          <div className="absolute bottom-0 left-0 right-0 p-6 z-10">
-            <p className="text-white text-lg leading-relaxed font-light italic drop-shadow-lg">
-              &ldquo;{message}&rdquo;
+        {/* Title */}
+        {title && (
+          <div className="absolute top-0 left-0 right-0 p-6 z-10">
+            <h2 className="text-white text-xl font-semibold drop-shadow-lg">
+              {title}
+            </h2>
+          </div>
+        )}
+
+        {/* Life memories text */}
+        {lifeMemories && (
+          <div className="absolute bottom-0 left-0 right-0 p-6 z-10 max-h-[60%] overflow-y-auto">
+            <p className="text-white/90 text-sm leading-relaxed whitespace-pre-line drop-shadow-lg">
+              {lifeMemories}
             </p>
-            {author && (
-              <p className="text-white/80 text-sm mt-2 drop-shadow-lg">
-                — {author}
-              </p>
-            )}
           </div>
         )}
       </div>
 
+      {/* Thumbnails strip */}
+      {imageUrls.length > 0 && (
+        <div className="w-full flex gap-2 overflow-x-auto pb-1">
+          {imageUrls.map((url, i) => (
+            <div key={i} className="relative flex-shrink-0 group">
+              <img
+                src={url}
+                alt={`Thumbnail ${i + 1}`}
+                onClick={() => setActivePhotoIndex(i)}
+                className={`w-16 h-16 rounded-lg object-cover cursor-pointer transition-all border-2 ${
+                  i === activePhotoIndex
+                    ? "border-blue-400 opacity-100"
+                    : "border-transparent opacity-60 hover:opacity-100"
+                }`}
+              />
+              <button
+                onClick={() => removePhoto(i)}
+                className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-red-500
+                           text-white text-xs flex items-center justify-center
+                           opacity-0 group-hover:opacity-100 transition-opacity"
+              >
+                &times;
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* Upload Area */}
       <div className="w-full space-y-4">
-        {!imageUrl ? (
-          <>
-            {/* Drag & drop zone */}
-            <div
-              onDrop={handleDrop}
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-              onClick={() => fileInputRef.current?.click()}
-              className={`
-                relative border-2 border-dashed rounded-xl p-8 text-center cursor-pointer
-                transition-all duration-200
-                ${
-                  isDragOver
-                    ? "border-blue-400 bg-blue-400/10 scale-[1.02]"
-                    : "border-white/30 hover:border-white/50 hover:bg-white/5"
-                }
-              `}
-            >
-              {isUploading ? (
-                <div className="space-y-3">
-                  {/* Spinner */}
-                  <svg
-                    className="animate-spin h-8 w-8 mx-auto text-blue-400"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    />
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    />
-                  </svg>
-                  <p className="text-white/70 text-sm">
-                    Uploading... {uploadProgress}%
-                  </p>
-                  {/* Progress bar */}
-                  <div className="w-full max-w-xs mx-auto bg-white/10 rounded-full h-1.5 overflow-hidden">
-                    <div
-                      className="h-full bg-linear-to-r from-blue-400 to-purple-400 rounded-full transition-all duration-300"
-                      style={{ width: `${uploadProgress}%` }}
-                    />
-                  </div>
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  <svg
-                    className="w-10 h-10 mx-auto text-white/50"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={1.5}
-                      d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-                    />
-                  </svg>
-                  <p className="text-white/60 text-sm">
-                    Drop your photo here or click to browse
-                  </p>
-                  <p className="text-white/30 text-xs">PNG, JPG up to 10MB</p>
-                </div>
-              )}
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                onChange={handleFileSelect}
-                className="hidden"
-              />
+        <div
+          onDrop={handleDrop}
+          onDragOver={(e) => {
+            e.preventDefault();
+            setIsDragOver(true);
+          }}
+          onDragLeave={(e) => {
+            e.preventDefault();
+            setIsDragOver(false);
+          }}
+          onClick={() => fileInputRef.current?.click()}
+          className={`relative border-2 border-dashed rounded-xl p-6 text-center cursor-pointer
+                      transition-all duration-200 ${
+                        isDragOver
+                          ? "border-blue-400 bg-blue-400/10 scale-[1.02]"
+                          : "border-white/30 hover:border-white/50 hover:bg-white/5"
+                      }`}
+        >
+          {isUploading ? (
+            <div className="space-y-3">
+              <svg
+                className="animate-spin h-8 w-8 mx-auto text-blue-400"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                />
+              </svg>
+              <p className="text-white/70 text-sm">
+                Uploading {uploadCount.done} of {uploadCount.total} photos... {uploadProgress}%
+              </p>
+              <div className="w-full max-w-xs mx-auto bg-white/10 rounded-full h-1.5 overflow-hidden">
+                <div
+                  className="h-full bg-linear-to-r from-blue-400 to-purple-400 rounded-full transition-all duration-300"
+                  style={{ width: `${uploadProgress}%` }}
+                />
+              </div>
             </div>
+          ) : (
+            <div className="space-y-2">
+              <svg
+                className="w-10 h-10 mx-auto text-white/50"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1.5}
+                  d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                />
+              </svg>
+              <p className="text-white/60 text-sm">
+                {imageUrls.length > 0
+                  ? "Add more photos..."
+                  : "Drop photos here or click to browse"}
+              </p>
+              <p className="text-white/30 text-xs">
+                PNG, JPG up to 10MB each &middot; Select multiple
+              </p>
+            </div>
+          )}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            multiple
+            onChange={handleFileSelect}
+            className="hidden"
+          />
+        </div>
 
-            {error && (
-              <p className="text-red-400 text-sm text-center">{error}</p>
-            )}
-          </>
-        ) : (
-          <button
-            onClick={() => fileInputRef.current?.click()}
-            className="w-full py-2.5 rounded-lg border border-white/20 text-white/60 text-sm
-                       hover:bg-white/10 hover:text-white/80 transition-all"
-          >
-            Change photo
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              onChange={handleFileSelect}
-              className="hidden"
-            />
-          </button>
+        {error && (
+          <p className="text-red-400 text-sm text-center">{error}</p>
         )}
       </div>
 
       {/* Text Inputs */}
       <div className="w-full space-y-3">
-        <textarea
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          placeholder="Write your thank you message..."
-          rows={3}
-          className="w-full px-4 py-3 rounded-xl border border-white/20 bg-white/5
-                     text-white placeholder-white/30 text-sm resize-none
-                     focus:outline-none focus:border-white/40 focus:bg-white/10
-                     transition-all backdrop-blur-sm"
-        />
         <input
           type="text"
-          value={author}
-          onChange={(e) => setAuthor(e.target.value)}
-          placeholder="Your name"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          placeholder="Give your memory book a title..."
           className="w-full px-4 py-2.5 rounded-xl border border-white/20 bg-white/5
                      text-white placeholder-white/30 text-sm
                      focus:outline-none focus:border-white/40 focus:bg-white/10
                      transition-all backdrop-blur-sm"
         />
+        <textarea
+          value={lifeMemories}
+          onChange={(e) => setLifeMemories(e.target.value)}
+          placeholder="Paste the elderly's life memories here... their stories, wisdom, special moments, and family history."
+          rows={8}
+          className="w-full px-4 py-3 rounded-xl border border-white/20 bg-white/5
+                     text-white placeholder-white/30 text-sm
+                     focus:outline-none focus:border-white/40 focus:bg-white/10
+                     transition-all backdrop-blur-sm resize-y"
+        />
       </div>
 
-      {/* Actions */}
-      {hasContent && (
-        <button
-          onClick={resetCard}
-          className="px-6 py-2 rounded-full border border-white/20 text-white/50 text-xs
-                     hover:border-red-400/40 hover:text-red-300 transition-all"
-        >
-          Reset card
-        </button>
-      )}
+      {/* Action buttons */}
+      <div className="w-full flex gap-3 justify-center">
+        {!submitted ? (
+          <button
+            onClick={handleSubmit}
+            disabled={isSubmitting || !lifeMemories.trim()}
+            className="px-8 py-3 rounded-full font-medium text-sm transition-all
+                       bg-white/90 text-gray-900 hover:bg-white
+                       disabled:opacity-30 disabled:cursor-not-allowed
+                       shadow-lg shadow-black/20"
+          >
+            {isSubmitting ? (
+              <span className="flex items-center gap-2">
+                <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                </svg>
+                Saving...
+              </span>
+            ) : (
+              "Save Memory"
+            )}
+          </button>
+        ) : (
+          <p className="text-green-400 text-sm flex items-center gap-1.5 py-3">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+            Memory saved!
+          </p>
+        )}
+
+        {hasContent && (
+          <button
+            onClick={resetCard}
+            className="px-6 py-3 rounded-full border border-white/20 text-white/50 text-xs
+                       hover:border-red-400/40 hover:text-red-300 transition-all"
+          >
+            Reset
+          </button>
+        )}
+      </div>
     </div>
   );
 }
