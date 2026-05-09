@@ -14,8 +14,10 @@ const deepseekProvider = createDeepSeek({
 export const AgentState = z.object({
   memories: z.array(
     z.object({
-      slug: z.string(),
-      memory: z.string(),
+      _id: z.string(),
+      inspiration: z.string(),
+      description: z.string(),
+      imageUrl: z.string(),
     }),
   ),
   suggestion: z.array(

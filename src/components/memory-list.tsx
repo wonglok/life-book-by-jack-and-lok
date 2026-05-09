@@ -419,11 +419,6 @@ export default function MemoryList() {
                         </div>
                       )}
 
-                      {/* Full narrative */}
-                      <div className="text-white/70 text-sm leading-relaxed whitespace-pre-line max-h-64 overflow-y-auto">
-                        {memory.lifeMemories}
-                      </div>
-
                       {/* Timestamps */}
                       <div className="text-white/30 text-xs space-y-0.5">
                         <p>

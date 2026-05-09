@@ -37,11 +37,12 @@ export async function POST(req: NextRequest) {
     await connectDB();
     const body = await req.json();
 
-    const { moments, imageUrls } = body;
+    const { moments, imageUrls, imageAndInspiration } = body;
 
     const memory = await Memory.create({
       moments: moments || [],
       imageUrls: imageUrls || [],
+      imageAndInspiration: imageAndInspiration || [],
     });
 
     return NextResponse.json(memory, {
