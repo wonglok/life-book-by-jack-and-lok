@@ -10,7 +10,7 @@ import {
   useEnvironment,
   useTexture,
 } from "@react-three/drei";
-import { useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { Mesh, MeshBasicMaterial, Object3D, PlaneGeometry } from "three";
 import { useFrame, useThree } from "@react-three/fiber";
 import { AgentStateType } from "@/mastra/agents";
@@ -74,7 +74,9 @@ export function Cards({ state, setState }: ProverbsCardProps) {
       {state?.memories?.map((mem, idx) => {
         return (
           <group key={mem._id + idx}>
-            <OneCard mouse={refAccuTotal} info={mem}></OneCard>
+            <Suspense fallback={null}>
+              <OneCard mouse={refAccuTotal} info={mem}></OneCard>
+            </Suspense>
           </group>
         );
       })}

@@ -204,13 +204,38 @@ function YourMainContent({
 
           <div className=" absolute bottom-[5%] left-[5%] right-[5%] h-[100px] bg-white rounded-2xl p-3">
             <button
-              className="p-2 bg-gray-200 bodder rounded-2xl"
+              className="p-2 bg-gray-200 bodder rounded-full text-sm mx-3"
               onClick={() => {
                 //
                 agent.agent.addMessage({
                   role: "user",
                   content: `I want to see touching moments, please suggest me some memories and set the theme color based on the moment.`,
                   id: `_${Math.random().toString(36).slice(2, 9)}`,
+                });
+
+                setState({
+                  memories: first?.imageAndInspiration || [],
+                  suggestion: [],
+                });
+                copilotkit.runAgent({ agent: agent.agent });
+              }}
+            >
+              See Touching Moments
+            </button>
+
+            <button
+              className="p-2 bg-gray-200 bodder rounded-full text-sm mx-3"
+              onClick={() => {
+                //
+                agent.agent.addMessage({
+                  role: "user",
+                  content: `I want to see touching moments, please suggest me some memories and set the theme color based on the moment.`,
+                  id: `_${Math.random().toString(36).slice(2, 9)}`,
+                });
+
+                setState({
+                  memories: first?.imageAndInspiration || [],
+                  suggestion: [],
                 });
                 copilotkit.runAgent({ agent: agent.agent });
               }}
