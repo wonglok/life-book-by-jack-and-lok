@@ -21,7 +21,7 @@ import MemoryList from "@/components/memory-list";
 import { MemoryLoader } from "@/components/memory-loader";
 import slugify from "slugify";
 import { Logo } from "./_compos/3D/Logo/Logo";
-import { useAgent } from "@copilotkit/react-core/v2";
+import { useAgent, useCopilotKit } from "@copilotkit/react-core/v2";
 import { Bubble } from "./_compos/3D/Bubble/Bubble";
 import { useApp } from "./_compos/3D/useApp";
 export default function CopilotKitPage() {
@@ -165,6 +165,7 @@ function YourMainContent({
       //
     },
   });
+  const { copilotkit } = useCopilotKit();
 
   return (
     <div style={{ backgroundColor: themeColor }} className="h-screen relative">
@@ -211,6 +212,7 @@ function YourMainContent({
                   content: `I want to see touching moments, please suggest me some memories and set the theme color based on the moment.`,
                   id: `_${Math.random().toString(36).slice(2, 9)}`,
                 });
+                copilotkit.runAgent({ agent: agent.agent });
               }}
             >
               See Touching Moments
