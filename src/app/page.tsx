@@ -114,7 +114,7 @@ function YourMainContent({
   const { state, setState, name } = useCoAgent<AgentStateType>({
     name: "weatherAgent",
     initialState: {
-      memories: first.imageAndInspiration || [],
+      memories: first?.imageAndInspiration || [],
     },
   });
   const agent = useAgent({ agentId: name });

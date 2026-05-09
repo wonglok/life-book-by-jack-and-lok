@@ -8,6 +8,7 @@ import {
   RoundedBoxGeometry,
   Text3D,
   useEnvironment,
+  useTexture,
 } from "@react-three/drei";
 import { useEffect, useRef, useState } from "react";
 import { Mesh, MeshBasicMaterial, Object3D, PlaneGeometry } from "three";
@@ -72,7 +73,7 @@ export function Cards({ state, setState }: ProverbsCardProps) {
 
       {state?.memories?.map((mem, idx) => {
         return (
-          <group key={mem.slug + idx}>
+          <group key={mem._id + idx}>
             <OneCard mouse={refAccuTotal} info={mem}></OneCard>
           </group>
         );
@@ -86,7 +87,7 @@ export function Cards({ state, setState }: ProverbsCardProps) {
 
 function OneCard({ info }: any) {
   console.log(info);
-
+  let tex: any = useTexture(info.imageUrl);
   return (
     <group>
       <mesh>
@@ -95,9 +96,10 @@ function OneCard({ info }: any) {
           radius={0.1}
         ></RoundedBoxGeometry>
         <meshPhysicalMaterial
-          transmission={1}
-          roughness={0.1}
-          metalness={0.2}
+          // transmission={1}
+          roughness={1}
+          // metalness={0.2}
+          map={tex}
         ></meshPhysicalMaterial>
       </mesh>
     </group>
