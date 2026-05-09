@@ -11,9 +11,6 @@ export interface ImageAndInspiration {
 export interface MemoryEntry {
   _id?: string;
   id: string;
-  title: string;
-  elderlyName?: string;
-  ories: string;
   moments: string[];
   imageUrls: string[];
   imageAndInspiration: ImageAndInspiration[];
@@ -25,20 +22,11 @@ interface Props {
   onSubmitted?: (entry: MemoryEntry) => void;
 }
 
-function splitIntoMoments(text: string): string[] {
-  return text
-    .split(/\n\n+/)
-    .map((s) => s.trim())
-    .filter((s) => s.length > 10);
-}
-
 export default function MemoryThankYouCard({ onSubmitted }: Props) {
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [activePhotoIndex, setActivePhotoIndex] = useState(0);
-  const [lifeMemories, setLifeMemories] = useState("");
   const [moments, setMoments] = useState<string[]>([]);
   const [activeMomentIndex, setActiveMomentIndex] = useState(0);
-  const [title, setTitle] = useState("");
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadCount, setUploadCount] = useState({ done: 0, total: 0 });
