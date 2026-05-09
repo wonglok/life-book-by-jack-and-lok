@@ -217,7 +217,7 @@ function YourMainContent({
                 // });
                 agent.agent.addMessage({
                   role: "user",
-                  content: `please suggest me some memories that are touching, and set the theme color based on the moment.`,
+                  content: `suggest me images that are touching, and set the theme color based on the moment.`,
                   id: `_${Math.random().toString(36).slice(2, 9)}`,
                 });
 
@@ -233,7 +233,7 @@ function YourMainContent({
                 //
                 agent.agent.addMessage({
                   role: "user",
-                  content: `please suggest me some memories that are happy, and set the theme color based on the moment.`,
+                  content: `suggest me images that are happy, and set the theme color based on the moment.`,
                   id: `_${Math.random().toString(36).slice(2, 9)}`,
                 });
 
