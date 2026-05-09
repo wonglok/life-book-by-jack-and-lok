@@ -115,7 +115,8 @@ function YourMainContent({
   const { state, setState, name } = useCoAgent<AgentStateType>({
     name: "weatherAgent",
     initialState: {
-      memories: first?.imageAndInspiration || [],
+      suggestions: first?.imageAndInspiration.slice() || [],
+      memories: first?.imageAndInspiration.slice() || [],
     },
   });
   const agent = useAgent({ agentId: name });
@@ -167,6 +168,8 @@ function YourMainContent({
   });
   const { copilotkit } = useCopilotKit();
 
+  console.log(state.any, "state.any");
+
   return (
     <div style={{ backgroundColor: themeColor }} className="h-screen relative">
       <div className="flex h-full w-full">
@@ -207,16 +210,17 @@ function YourMainContent({
               className="p-2 bg-gray-200 bodder rounded-full text-sm mx-3"
               onClick={() => {
                 //
+
+                // setState({
+                //   memories: first?.imageAndInspiration || [],
+                //   suggestion: [],
+                // });
                 agent.agent.addMessage({
                   role: "user",
-                  content: `I want to see touching moments, please suggest me some memories and set the theme color based on the moment.`,
+                  content: `please suggest me some memories that are touching, and set the theme color based on the moment.`,
                   id: `_${Math.random().toString(36).slice(2, 9)}`,
                 });
 
-                setState({
-                  memories: first?.imageAndInspiration || [],
-                  suggestion: [],
-                });
                 copilotkit.runAgent({ agent: agent.agent });
               }}
             >
@@ -229,14 +233,14 @@ function YourMainContent({
                 //
                 agent.agent.addMessage({
                   role: "user",
-                  content: `I want to see happy moments, please suggest me items to view and set the theme color based on the moment.`,
+                  content: `please suggest me some memories that are happy, and set the theme color based on the moment.`,
                   id: `_${Math.random().toString(36).slice(2, 9)}`,
                 });
 
-                setState({
-                  memories: first?.imageAndInspiration || [],
-                  suggestion: state.suggestion || [],
-                });
+                // setState({
+                //   memories: first?.imageAndInspiration || [],
+                //   suggestion: state.suggestion || [],
+                // });
                 copilotkit.runAgent({ agent: agent.agent });
               }}
             >

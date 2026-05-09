@@ -22,6 +22,7 @@ export const AgentState = z.object({
       }),
     )
     .default([]),
+  any: z.string()?.optional(),
   suggestion: z
     .array(
       z.object({
