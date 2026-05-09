@@ -329,7 +329,7 @@ export default function MemoryThankYouCard({ onSubmitted }: Props) {
       {imageUrls.length > 0 && (
         <div className="w-full flex gap-2 overflow-x-auto pb-1">
           {imageUrls.map((url, i) => (
-            <div key={i} className="relative flex-shrink-0 group">
+            <div key={i} className="relative shrink-0 group">
               <img
                 src={url}
                 alt={`Thumbnail ${i + 1}`}
